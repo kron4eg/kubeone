@@ -1,6 +1,6 @@
 +++
 title = "v1beta3 API Reference"
-date = 2025-01-20T18:43:41+01:00
+date = 2025-02-25T14:52:05+02:00
 weight = 11
 +++
 ## v1beta3
@@ -251,6 +251,7 @@ ContainerdRegistry defines endpoints and security for given container registry
 | mirrors | List of registry mirrors to use | []string | false |
 | tlsConfig | TLSConfig for the registry | *[ContainerdTLSConfig](#containerdtlsconfig) | false |
 | auth | Registry authentication | *[ContainerdRegistryAuthConfig](#containerdregistryauthconfig) | false |
+| overridePath | override_path option from containerd See https://github.com/containerd/containerd/blob/main/docs/hosts.md#override_path-field | bool | true |
 
 [Back to Group](#v1beta3)
 

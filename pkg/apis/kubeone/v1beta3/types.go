@@ -205,6 +205,10 @@ type ContainerdRegistry struct {
 
 	// Registry authentication
 	Auth *ContainerdRegistryAuthConfig `json:"auth,omitempty"`
+
+	// override_path option from containerd
+	// See https://github.com/containerd/containerd/blob/main/docs/hosts.md#override_path-field
+	OverridePath bool `json:"overridePath"`
 }
 
 // Containerd per-registry credentials config

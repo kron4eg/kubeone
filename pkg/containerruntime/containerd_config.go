@@ -64,7 +64,8 @@ type containerdCRIRegistry struct {
 }
 
 type containerdRegistryMirror struct {
-	Endpoint []string `toml:"endpoint"`
+	Endpoint     []string `toml:"endpoint"`
+	OverridePath bool     `toml:"override_path,omitempty"`
 }
 
 type containerdRegistryConfig struct {
@@ -128,7 +129,8 @@ func marshalContainerdConfig(cluster *kubeoneapi.KubeOneCluster) (string, error)
 
 		for registryName, registry := range regs {
 			criPlugin.Registry.Mirrors[registryName] = containerdRegistryMirror{
-				Endpoint: registry.Mirrors,
+				Endpoint:     registry.Mirrors,
+				OverridePath: registry.OverridePath,
 			}
 
 			if registry.TLSConfig != nil {

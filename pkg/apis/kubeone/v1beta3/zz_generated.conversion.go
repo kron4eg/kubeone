@@ -1084,6 +1084,7 @@ func autoConvert_v1beta3_ContainerdRegistry_To_kubeone_ContainerdRegistry(in *Co
 	out.Mirrors = *(*[]string)(unsafe.Pointer(&in.Mirrors))
 	out.TLSConfig = (*kubeone.ContainerdTLSConfig)(unsafe.Pointer(in.TLSConfig))
 	out.Auth = (*kubeone.ContainerdRegistryAuthConfig)(unsafe.Pointer(in.Auth))
+	out.OverridePath = in.OverridePath
 	return nil
 }
 
@@ -1096,6 +1097,7 @@ func autoConvert_kubeone_ContainerdRegistry_To_v1beta3_ContainerdRegistry(in *ku
 	out.Mirrors = *(*[]string)(unsafe.Pointer(&in.Mirrors))
 	out.TLSConfig = (*ContainerdTLSConfig)(unsafe.Pointer(in.TLSConfig))
 	out.Auth = (*ContainerdRegistryAuthConfig)(unsafe.Pointer(in.Auth))
+	out.OverridePath = in.OverridePath
 	return nil
 }
 
