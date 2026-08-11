@@ -74,8 +74,8 @@ type KubeOneCluster struct {
 	// Features enables and configures additional cluster features.
 	Features Features `json:"features,omitempty,omitzero"`
 
-	// Addons are used to deploy additional manifests.
-	Addons *Addons `json:"addons,omitempty"`
+	// HelmReleases configures Helm releases to be installed in the cluster.
+	HelmReleases []HelmRelease `json:"helmReleases,omitempty"`
 
 	// SystemPackages configure kubeone behaviour regarding OS packages.
 	SystemPackages *SystemPackages `json:"systemPackages,omitempty"`
@@ -1233,39 +1233,6 @@ type OpenIDConnectConfig struct {
 
 	// CAFile
 	CAFile string `json:"caFile"`
-}
-
-// Addon config
-type Addon struct {
-	// Name of the addon to configure
-	Name string `json:"name"`
-
-	// Params to the addon, to render the addon using text/template, this will override globalParams
-	Params map[string]string `json:"params,omitempty"`
-
-	// DisableTemplating is used to disable templatization for the addon.
-	DisableTemplating bool `json:"disableTemplating,omitempty"`
-
-	// Delete flag to ensure the named addon with all its contents to be deleted
-	Delete bool `json:"delete,omitempty"`
-}
-
-type AddonRef struct {
-	// Addon represents a built-in KubeOne templated addon unit.
-	Addon *Addon `json:"addon,omitempty"`
-
-	// HelmReleases configure helm charts to reconcile. For each HelmRelease it will run analog of: `helm upgrade
-	// --namespace <NAMESPACE> --install --create-namespace <RELEASE> <CHART> [--values=values-override.yaml]`
-	HelmRelease *HelmRelease `json:"helmRelease,omitempty"`
-}
-
-// Addons config
-type Addons struct {
-	// Path on the local file system to the directory with addons manifests.
-	Path string `json:"path,omitempty"`
-
-	// Addons is a list of config options for named addon
-	Addons []AddonRef `json:"addons,omitempty"`
 }
 
 // Encryption Providers feature flag
