@@ -35,29 +35,29 @@ type KubeOneCluster struct {
 	// ControlPlane describes the control plane nodes and how to access them.
 	ControlPlane ControlPlaneConfig `json:"controlPlane"`
 
+	// KubeletConfig used to generate cluster's KubeletConfiguration that will be used along with kubeadm
+	KubeletConfig KubeletConfig `json:"kubeletConfig,omitempty,omitzero"`
+
 	// APIEndpoint are pairs of address and port used to communicate with the Kubernetes API.
 	APIEndpoint APIEndpoint `json:"apiEndpoint"`
 
 	// CloudProvider configures the cloud provider specific features.
 	CloudProvider CloudProviderSpec `json:"cloudProvider"`
 
-	// KubeletConfig used to generate cluster's KubeletConfiguration that will be used along with kubeadm
-	KubeletConfig KubeletConfig `json:"kubeletConfig,omitempty"`
-
 	// Versions defines which Kubernetes version will be installed.
 	Versions VersionConfig `json:"versions"`
 
 	// ContainerRuntime defines which container runtime will be installed
-	ContainerRuntime ContainerRuntimeConfig `json:"containerRuntime,omitempty"`
+	ContainerRuntime ContainerRuntimeConfig `json:"containerRuntime,omitempty,omitzero"`
 
 	// ClusterNetwork configures the in-cluster networking.
-	ClusterNetwork ClusterNetworkConfig `json:"clusterNetwork,omitempty"`
+	ClusterNetwork ClusterNetworkConfig `json:"clusterNetwork,omitempty,omitzero"`
 
 	// Proxy configures proxy used while installing Kubernetes and by the Docker daemon.
-	Proxy ProxyConfig `json:"proxy,omitempty"`
+	Proxy ProxyConfig `json:"proxy,omitempty,omitzero"`
 
 	// StaticWorkers describes the worker nodes that are managed by KubeOne/kubeadm.
-	StaticWorkers StaticWorkersConfig `json:"staticWorkers,omitempty"`
+	StaticWorkers StaticWorkersConfig `json:"staticWorkers,omitempty,omitzero"`
 
 	// DynamicWorkers describes the worker nodes that are managed by Kubermatic machine-controller/Cluster-API.
 	DynamicWorkers []DynamicWorkerConfig `json:"dynamicWorkers,omitempty"`
@@ -68,16 +68,11 @@ type KubeOneCluster struct {
 	// OperatingSystemManager configures the Kubermatic operating-system-manager component.
 	OperatingSystemManager *OperatingSystemManagerConfig `json:"operatingSystemManager,omitempty"`
 
-	// CABundle PEM encoded global CA.
-	//
-	// Deprecated: Use CertificateAuthorithyConfig instead. Will be overriten by certificateAuthority.bundle if set.
-	CABundle string `json:"caBundle,omitempty"`
-
 	// CertificateAuthority configures Central Authority certificate.
-	CertificateAuthority CertificateAuthorithyConfig `json:"certificateAuthority,omitempty"`
+	CertificateAuthority CertificateAuthorityConfig `json:"certificateAuthority,omitempty,omitzero"`
 
 	// Features enables and configures additional cluster features.
-	Features Features `json:"features,omitempty"`
+	Features Features `json:"features,omitempty,omitzero"`
 
 	// Addons are used to deploy additional manifests.
 	Addons *Addons `json:"addons,omitempty"`
@@ -89,17 +84,17 @@ type KubeOneCluster struct {
 	RegistryConfiguration *RegistryConfiguration `json:"registryConfiguration,omitempty"`
 
 	// LoggingConfig configures the Kubelet's log rotation
-	LoggingConfig LoggingConfig `json:"loggingConfig,omitempty"`
+	LoggingConfig LoggingConfig `json:"loggingConfig,omitempty,omitzero"`
 
 	// TLSCipherSuites allows to configure TLS cipher suites for different components. See
 	// https://pkg.go.dev/crypto/tls#pkg-constants for possible values.
-	TLSCipherSuites TLSCipherSuites `json:"tlsCipherSuites"`
+	TLSCipherSuites TLSCipherSuites `json:"tlsCipherSuites,omitempty,omitzero"`
 
 	// ControlPlaneComponents configures the Kubernetes control plane components
 	ControlPlaneComponents *ControlPlaneComponents `json:"controlPlaneComponents,omitempty"`
 }
 
-type CertificateAuthorithyConfig struct {
+type CertificateAuthorityConfig struct {
 	// Bundle inline PEM encoded global CA
 	Bundle string `json:"bundle,omitempty"`
 
@@ -114,6 +109,9 @@ type CertificateAuthorithyConfig struct {
 	// Default value: 87600h (365 days * 24 hours * 10 = 10 years)
 	CACertificateValidityPeriod *metav1.Duration `json:"caCertificateValidityPeriod,omitempty"`
 }
+
+// CertificateAuthorithyConfig is a deprecated alias for CertificateAuthorityConfig (kept for Go API compatibility).
+type CertificateAuthorithyConfig = CertificateAuthorityConfig
 
 type ControlPlaneComponents struct {
 	// ControllerManagerConfig configures the Kubernetes Controller Manager
@@ -378,27 +376,27 @@ type HostConfig struct {
 	Annotations map[string]string `json:"annotations,omitempty"`
 
 	// Kubelet
-	Kubelet KubeletConfig `json:"kubelet,omitempty"`
+	Kubelet KubeletConfig `json:"kubelet,omitempty,omitzero"`
 
 	// OperatingSystem information, can be populated at the runtime.
-	OperatingSystem OperatingSystemName `json:"operatingSystem,omitempty"`
+	OperatingSystem OperatingSystemName `json:"operatingSystem,omitempty,omitzero"`
 }
 
 // ControlPlaneConfig defines control plane nodes
 type ControlPlaneConfig struct {
 	// Hosts array of all control plane hosts.
-	Hosts []HostConfig `json:"hosts"`
+	Hosts []HostConfig `json:"hosts,omitempty"`
 
-	NodeSets []NodeSet `json:"nodeSets"`
+	NodeSets []NodeSet `json:"nodeSets,omitempty"`
 }
 
 type NodeSet struct {
 	Name                string              `json:"name"`
 	Replicas            int                 `json:"replicas"`
 	Generation          int                 `json:"generation,omitempty"`
-	NodeSettings        NodeSettingsSpec    `json:"nodeSettings,omitempty"`
-	OperatingSystem     OperatingSystemName `json:"operatingSystem"`
-	OperatingSystemSpec OperatingSystemSpec `json:"operatingSystemSpec,omitempty"`
+	NodeSettings        NodeSettingsSpec    `json:"nodeSettings,omitempty,omitzero"`
+	OperatingSystem     OperatingSystemName `json:"operatingSystem,omitzero"`
+	OperatingSystemSpec OperatingSystemSpec `json:"operatingSystemSpec,omitempty,omitzero"`
 	SSH                 SSHSpec             `json:"ssh"`
 	CloudProviderSpec   json.RawMessage     `json:"cloudProviderSpec"`
 }
@@ -469,12 +467,12 @@ type KubeletConfig struct {
 	ImageGCLowThresholdPercent *int32 `json:"imageGCLowThresholdPercent,omitempty"`
 
 	// ImageMinimumGCAge is the minimum age for an unused image before it is garbage collected. Default: "2m"
-	ImageMinimumGCAge metav1.Duration `json:"imageMinimumGCAge,omitempty"`
+	ImageMinimumGCAge metav1.Duration `json:"imageMinimumGCAge,omitempty,omitzero"`
 
 	// ImageMaximumGCAge is the maximum age an image can be unused before it is garbage collected. The default of this
 	// field is "0s", which disables this field--meaning images won't be garbage collected based on being unused for too
 	// long. Default: "0s" (disabled)
-	ImageMaximumGCAge metav1.Duration `json:"imageMaximumGCAge,omitempty"`
+	ImageMaximumGCAge metav1.Duration `json:"imageMaximumGCAge,omitempty,omitzero"`
 }
 
 // APIEndpoint is the endpoint used to communicate with the Kubernetes API
@@ -498,12 +496,6 @@ type CloudProviderSpec struct {
 
 	// DisableBundledCSIDrivers disables automatic deployment of CSI drivers bundled with KubeOne
 	DisableBundledCSIDrivers bool `json:"disableBundledCSIDrivers"`
-
-	// CloudConfig
-	CloudConfig string `json:"cloudConfig,omitempty"`
-
-	// CSIConfig
-	CSIConfig string `json:"csiConfig,omitempty"`
 
 	// SecretProviderClassName
 	SecretProviderClassName string `json:"secretProviderClassName,omitempty"`
@@ -532,9 +524,6 @@ type CloudProviderSpec struct {
 	// Openstack
 	Openstack *OpenstackSpec `json:"openstack,omitempty"`
 
-	// EquinixMetal
-	EquinixMetal *EquinixMetalSpec `json:"equinixmetal,omitempty"`
-
 	// VMware Cloud Director
 	VMwareCloudDirector *VMwareCloudDirectorSpec `json:"vmwareCloudDirector,omitempty"`
 
@@ -546,10 +535,16 @@ type CloudProviderSpec struct {
 }
 
 // AWSSpec defines the AWS cloud provider
-type AWSSpec struct{}
+type AWSSpec struct {
+	// CloudConfig
+	CloudConfig string `json:"cloudConfig,omitempty"`
+}
 
 // AzureSpec defines the Azure cloud provider
-type AzureSpec struct{}
+type AzureSpec struct {
+	// CloudConfig
+	CloudConfig string `json:"cloudConfig,omitempty"`
+}
 
 // DigitalOceanSpec defines the DigitalOcean cloud provider
 type DigitalOceanSpec struct{}
@@ -629,6 +624,9 @@ type NutanixSpec struct{}
 
 // OpenstackSpec defines the Openstack provider
 type OpenstackSpec struct {
+	// CloudConfig
+	CloudConfig string `json:"cloudConfig,omitempty"`
+
 	// ControlPlane configures control plane provisioning on OpenStack
 	ControlPlane *OpenstackControlPlane `json:"controlPlane,omitempty"`
 }
@@ -648,9 +646,6 @@ type OpenstackLoadBalancer struct {
 	PoolID string `json:"poolID,omitempty"`
 }
 
-// EquinixMetalSpec defines the Equinix Metal cloud provider
-type EquinixMetalSpec struct{}
-
 // VMwareCloudDirectorSpec defines the VMware Cloud Director provider
 type VMwareCloudDirectorSpec struct {
 	// VApp is the name of vApp for VMs.
@@ -661,7 +656,13 @@ type VMwareCloudDirectorSpec struct {
 }
 
 // VsphereSpec defines the vSphere provider
-type VsphereSpec struct{}
+type VsphereSpec struct {
+	// CloudConfig
+	CloudConfig string `json:"cloudConfig,omitempty"`
+
+	// CSIConfig
+	CSIConfig string `json:"csiConfig,omitempty"`
+}
 
 // NoneSpec defines a none provider
 type NoneSpec struct{}
@@ -734,13 +735,16 @@ const (
 type KubeProxyConfig struct {
 	// SkipInstallation will skip the installation of kube-proxy
 	// default value is false
-	SkipInstallation bool `json:"skipInstallation"`
+	SkipInstallation bool `json:"skipInstallation,omitempty"`
 
 	// IPVS config
-	IPVS *IPVSConfig `json:"ipvs"`
+	IPVS *IPVSConfig `json:"ipvs,omitempty"`
 
 	// IPTables config
-	IPTables *IPTables `json:"iptables"`
+	IPTables *IPTables `json:"iptables,omitempty"`
+
+	// NFTables config
+	NFTables *NFTables `json:"nftables,omitempty"`
 }
 
 // IPVSConfig contains different options to configure IPVS kube-proxy mode
@@ -779,6 +783,9 @@ type IPVSConfig struct {
 // IPTables
 type IPTables struct{}
 
+// NFTables
+type NFTables struct{}
+
 // CNI config. Only one CNI provider must be used at the single time.
 type CNI struct {
 	// Canal
@@ -786,9 +793,6 @@ type CNI struct {
 
 	// Cilium
 	Cilium *CiliumSpec `json:"cilium,omitempty"`
-
-	// WeaveNet
-	WeaveNet *WeaveNetSpec `json:"weaveNet,omitempty"`
 
 	// External
 	External *ExternalCNISpec `json:"external,omitempty"`
@@ -806,7 +810,8 @@ type CiliumSpec struct {
 	// KubeProxyReplacement defines weather cilium relies on underlying Kernel support
 	// to replace kube-proxy functionality by eBPF (strict), or disables a subset of those
 	// features so cilium does not bail out if the kernel support is missing (disabled).
-	// default is false
+	// default is "disabled"
+	// +k8s:conversion-gen=false
 	KubeProxyReplacement bool `json:"kubeProxyReplacement"`
 
 	// EnableHubble to deploy Hubble relay and UI
@@ -826,12 +831,6 @@ type CiliumSpec struct {
 	// resource are deployed instead of the standard node-local-dns addon.
 	// Requires kubeProxyReplacement to be enabled. Mutually exclusive with features.nodeLocalDNS.deploy.
 	EnableLocalRedirectPolicy bool `json:"enableLocalRedirectPolicy"`
-}
-
-// WeaveNetSpec defines the WeaveNet CNI plugin
-type WeaveNetSpec struct {
-	// Encrypted
-	Encrypted bool `json:"encrypted,omitempty"`
 }
 
 // ExternalCNISpec defines the external CNI plugin.
@@ -969,8 +968,10 @@ type Features struct {
 
 	// AlwaysPullImages
 	AlwaysPullImages *AlwaysPullImages `json:"alwaysPullImages,omitempty"`
+
 	// EventRateLimit
 	EventRateLimit *EventRateLimit `json:"eventRateLimit,omitempty"`
+
 	// PodNodeSelector
 	PodNodeSelector *PodNodeSelector `json:"podNodeSelector,omitempty"`
 
@@ -1101,6 +1102,14 @@ type WebhookAuditLog struct {
 	Config WebhookAuditLogConfig `json:"config"`
 }
 
+type WebhookMode string
+
+const (
+	Batch          WebhookMode = "batch"
+	Blocking       WebhookMode = "blocking"
+	BlockingStrict WebhookMode = "blocking-strict"
+)
+
 type WebhookAuditLogConfig struct {
 	// PolicyFilePath is a path on local file system to the audit policy manifest
 	// which defines what events should be recorded and what data they should include.
@@ -1123,7 +1132,7 @@ type WebhookAuditLogConfig struct {
 	// Batch causes the backend to buffer and write events asynchronously.
 	// Known modes are batch,blocking,blocking-strict.
 	// Defaults to batch.
-	Mode string `json:"mode,omitempty"`
+	Mode WebhookMode `json:"mode,omitempty"`
 
 	// Version defines API group and version used for serializing audit events written to webhook.
 	// Defaults to audit.k8s.io/v1
@@ -1242,7 +1251,7 @@ type Addon struct {
 }
 
 type AddonRef struct {
-	// KubeOne's internal Addon
+	// Addon represents a built-in KubeOne templated addon unit.
 	Addon *Addon `json:"addon,omitempty"`
 
 	// HelmReleases configure helm charts to reconcile. For each HelmRelease it will run analog of: `helm upgrade

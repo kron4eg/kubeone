@@ -250,31 +250,6 @@ func updateOpenStackWorkerset(existingWorkerSet *kubeonev1beta3.DynamicWorkerCon
 	return nil
 }
 
-func updateEquinixMetalWorkerset(existingWorkerSet *kubeonev1beta3.DynamicWorkerConfig, cfg json.RawMessage) error {
-	var metalConfig machinecontroller.EquinixMetalSpec
-
-	if err := unmarshalStrict(cfg, &metalConfig); err != nil {
-		return fail.Config(err, "unmarshalling DynamicWorkerConfig EquinixMetal spec")
-	}
-
-	flags := []cloudProviderFlags{
-		{key: "projectID", value: metalConfig.ProjectID},
-		{key: "metro", value: metalConfig.Metro},
-		{key: "facilities", value: metalConfig.Facilities},
-		{key: "instanceType", value: metalConfig.InstanceType},
-		{key: "billingCycle", value: metalConfig.BillingCycle},
-		{key: "tags", value: metalConfig.Tags},
-	}
-
-	for _, flag := range flags {
-		if err := setWorkersetFlag(existingWorkerSet, flag.key, flag.value); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func updateVMwareCloudDirectorWorkerset(existingWorkerSet *kubeonev1beta3.DynamicWorkerConfig, cfg json.RawMessage) error {
 	var config machinecontroller.VMWareCloudDirectorSpec
 

@@ -69,14 +69,9 @@ const (
 	OpenStackUserName                    = "OS_USERNAME"
 	OpenStackApplicationCredentialID     = "OS_APPLICATION_CREDENTIAL_ID"
 	OpenStackApplicationCredentialSecret = "OS_APPLICATION_CREDENTIAL_SECRET"
-	EquinixMetalAuthToken                = "METAL_AUTH_TOKEN" //nolint:gosec
-	EquinixMetalProjectID                = "METAL_PROJECT_ID"
-	// TODO: Remove Packet env vars after deprecation period.
-	PacketAPIKey    = "PACKET_API_KEY"    //nolint:gosec
-	PacketProjectID = "PACKET_PROJECT_ID" //nolint:gosec
-	VSphereAddress  = "VSPHERE_SERVER"
-	VSpherePassword = "VSPHERE_PASSWORD"
-	VSphereUsername = "VSPHERE_USER"
+	VSphereAddress                       = "VSPHERE_SERVER"
+	VSpherePassword                      = "VSPHERE_PASSWORD"
+	VSphereUsername                      = "VSPHERE_USER"
 	// VMware Cloud Director Credentials
 	VMwareCloudDirectorUsername     = "VCD_USER"
 	VMwareCloudDirectorPassword     = "VCD_PASSWORD"
@@ -123,10 +118,6 @@ var allKeys = []string{
 	OpenStackTenantID,
 	OpenStackTenantName,
 	OpenStackUserName,
-	EquinixMetalAuthToken,
-	EquinixMetalProjectID,
-	PacketAPIKey,
-	PacketProjectID,
 	VSphereAddress,
 	VSpherePassword,
 	VSphereUsername,
@@ -190,15 +181,6 @@ func Any(credentialsFilePath string) (map[string]string, error) {
 	for _, key := range allKeys {
 		if val := credentialsFinder.get(key); val != "" {
 			creds[key] = val
-			// NB: We want to use Equinix Metal env vars everywhere, even if
-			// users has PACKET_ env vars on their systems.
-			// TODO: Remove after deprecation period.
-			switch key {
-			case PacketAPIKey:
-				creds[EquinixMetalAuthToken] = val
-			case PacketProjectID:
-				creds[EquinixMetalProjectID] = val
-			}
 		}
 	}
 
@@ -272,8 +254,6 @@ func ProviderCredentials(cloudProvider kubeoneapi.CloudProviderSpec, credentials
 			{Name: OpenStackTenantID},
 			{Name: OpenStackTenantName},
 		}, openstackValidationFunc)
-	case cloudProvider.EquinixMetal != nil:
-		return credentialsFinder.equinixmetal()
 	case cloudProvider.VMwareCloudDirector != nil:
 		return credentialsFinder.parseCredentialVariables([]ProviderEnvironmentVariable{
 			{Name: VMwareCloudDirectorUsername},
@@ -408,7 +388,8 @@ func (lookup lookupFunc) aws() (map[string]string, error) {
 	}
 
 	ctx := context.TODO()
-	conf, err := awsconfig.LoadDefaultConfig(ctx,
+	conf, err := awsconfig.LoadDefaultConfig(
+		ctx,
 		awsconfig.WithSharedConfigProfile(awsProfile),
 	)
 	if err != nil {
@@ -431,58 +412,6 @@ func (lookup lookupFunc) aws() (map[string]string, error) {
 	// safe to assume credentials were found
 	creds[AWSAccessKeyID] = awscreds.AccessKeyID
 	creds[AWSSecretAccessKey] = awscreds.SecretAccessKey
-
-	return creds, nil
-}
-
-func (lookup lookupFunc) equinixmetal() (map[string]string, error) {
-	creds := make(map[string]string)
-	packetAPIKey := lookup(PacketAPIKey)
-	packetProjectID := lookup(PacketProjectID)
-	metalAuthToken := lookup(EquinixMetalAuthToken)
-	metalProjectID := lookup(EquinixMetalProjectID)
-
-	if packetAPIKey != "" && packetProjectID != "" && metalAuthToken != "" && metalProjectID != "" {
-		return nil, fail.CredentialsError{
-			Op:       "lookup",
-			Provider: "Equinixmetal",
-			Err:      errors.New("found both PACKET_ and METAL_ environment variables, but only one can be used"),
-		}
-	}
-
-	if (packetAPIKey != "" && packetProjectID == "") || (packetAPIKey == "" && packetProjectID != "") {
-		return nil, fail.CredentialsError{
-			Op:       "lookup",
-			Provider: "Equinixmetal",
-			Err:      errors.New("both PACKET_API_KEY and PACKET_PROJECT_ID environment variables are required, but found only one"),
-		}
-	}
-
-	if (metalAuthToken != "" && metalProjectID == "") || (metalAuthToken == "" && metalProjectID != "") {
-		return nil, fail.CredentialsError{
-			Op:       "lookup",
-			Provider: "Equinixmetal",
-			Err:      errors.New("both METAL_AUTH_TOKEN and METAL_PROJECT_ID environment variables are required, but found only one"),
-		}
-	}
-
-	if packetAPIKey == "" && packetProjectID == "" && metalAuthToken == "" && metalProjectID == "" {
-		return nil, fail.CredentialsError{
-			Op:       "lookup",
-			Provider: "Equinixmetal",
-			Err:      errors.New("METAL_AUTH_TOKEN and METAL_PROJECT_ID environment variables are required"),
-		}
-	}
-
-	if packetAPIKey != "" && packetProjectID != "" {
-		creds[EquinixMetalAuthToken] = packetAPIKey
-		creds[EquinixMetalProjectID] = packetProjectID
-
-		return creds, nil
-	}
-
-	creds[EquinixMetalAuthToken] = metalAuthToken
-	creds[EquinixMetalProjectID] = metalProjectID
 
 	return creds, nil
 }

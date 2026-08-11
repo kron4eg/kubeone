@@ -1,6 +1,6 @@
 +++
 title = "v1beta3 API Reference"
-date = 2026-07-20T15:06:24+03:00
+date = 2026-08-11T00:29:55+03:00
 weight = 11
 +++
 ## v1beta3
@@ -14,7 +14,7 @@ weight = 11
 * [AzureSpec](#azurespec)
 * [CNI](#cni)
 * [CanalSpec](#canalspec)
-* [CertificateAuthorithyConfig](#certificateauthorithyconfig)
+* [CertificateAuthorityConfig](#certificateauthorityconfig)
 * [CiliumSpec](#ciliumspec)
 * [CloudProviderSpec](#cloudproviderspec)
 * [ClusterNetworkConfig](#clusternetworkconfig)
@@ -32,7 +32,6 @@ weight = 11
 * [DynamicAuditLog](#dynamicauditlog)
 * [DynamicWorkerConfig](#dynamicworkerconfig)
 * [EncryptionProviders](#encryptionproviders)
-* [EquinixMetalSpec](#equinixmetalspec)
 * [EtcdConfig](#etcdconfig)
 * [EventRateLimit](#eventratelimit)
 * [EventRateLimitConfig](#eventratelimitconfig)
@@ -57,6 +56,7 @@ weight = 11
 * [LoggingConfig](#loggingconfig)
 * [MachineControllerConfig](#machinecontrollerconfig)
 * [MetricsServer](#metricsserver)
+* [NFTables](#nftables)
 * [NodeLocalDNS](#nodelocaldns)
 * [NodeSet](#nodeset)
 * [NodeSettingsSpec](#nodesettingsspec)
@@ -84,7 +84,6 @@ weight = 11
 * [VMwareCloudDirectorSpec](#vmwareclouddirectorspec)
 * [VersionConfig](#versionconfig)
 * [VsphereSpec](#vspherespec)
-* [WeaveNetSpec](#weavenetspec)
 * [WebHookAuditLogBatchConfig](#webhookauditlogbatchconfig)
 * [WebHookAuditLogThrottleConfig](#webhookauditlogthrottleconfig)
 * [WebHookAuditLogTruncateConfig](#webhookauditlogtruncateconfig)
@@ -109,6 +108,7 @@ AWSSpec defines the AWS cloud provider
 
 | Field | Description | Scheme | Required |
 | ----- | ----------- | ------ | -------- |
+| cloudConfig | CloudConfig | string | false |
 
 [Back to Group](#v1beta3)
 
@@ -131,7 +131,7 @@ Addon config
 
 | Field | Description | Scheme | Required |
 | ----- | ----------- | ------ | -------- |
-| addon | KubeOne's internal Addon | *[Addon](#addon) | false |
+| addon | Addon represents a built-in KubeOne templated addon unit. | *[Addon](#addon) | false |
 | helmRelease | HelmReleases configure helm charts to reconcile. For each HelmRelease it will run analog of: `helm upgrade --namespace <NAMESPACE> --install --create-namespace <RELEASE> <CHART> [--values=values-override.yaml]` | *[HelmRelease](#helmrelease) | false |
 
 [Back to Group](#v1beta3)
@@ -164,6 +164,7 @@ AzureSpec defines the Azure cloud provider
 
 | Field | Description | Scheme | Required |
 | ----- | ----------- | ------ | -------- |
+| cloudConfig | CloudConfig | string | false |
 
 [Back to Group](#v1beta3)
 
@@ -175,7 +176,6 @@ CNI config. Only one CNI provider must be used at the single time.
 | ----- | ----------- | ------ | -------- |
 | canal | Canal | *[CanalSpec](#canalspec) | false |
 | cilium | Cilium | *[CiliumSpec](#ciliumspec) | false |
-| weaveNet | WeaveNet | *[WeaveNetSpec](#weavenetspec) | false |
 | external | External | *[ExternalCNISpec](#externalcnispec) | false |
 
 [Back to Group](#v1beta3)
@@ -190,7 +190,7 @@ CanalSpec defines the Canal CNI plugin
 
 [Back to Group](#v1beta3)
 
-### CertificateAuthorithyConfig
+### CertificateAuthorityConfig
 
 
 
@@ -209,7 +209,7 @@ CiliumSpec defines the Cilium CNI plugin
 
 | Field | Description | Scheme | Required |
 | ----- | ----------- | ------ | -------- |
-| kubeProxyReplacement | KubeProxyReplacement defines weather cilium relies on underlying Kernel support to replace kube-proxy functionality by eBPF (strict), or disables a subset of those features so cilium does not bail out if the kernel support is missing (disabled). default is false | bool | true |
+| kubeProxyReplacement | KubeProxyReplacement defines weather cilium relies on underlying Kernel support to replace kube-proxy functionality by eBPF (strict), or disables a subset of those features so cilium does not bail out if the kernel support is missing (disabled). default is \"disabled\" | bool | true |
 | enableHubble | EnableHubble to deploy Hubble relay and UI default value is false | bool | true |
 | enableL2Announcements | EnableL2Announcements enables the Layer 2 announcement feature for the Cilium CNI plugin. If not set, Cilium will use its default behavior. | bool | true |
 | enableGatewayAPI | EnableGatewayAPI enables the Gateway API feature for the Cilium CNI plugin. If not set, Cilium will use its default behavior. | bool | true |
@@ -226,8 +226,6 @@ Only one cloud provider must be defined at the single time.
 | ----- | ----------- | ------ | -------- |
 | external | External | bool | false |
 | disableBundledCSIDrivers | DisableBundledCSIDrivers disables automatic deployment of CSI drivers bundled with KubeOne | bool | true |
-| cloudConfig | CloudConfig | string | false |
-| csiConfig | CSIConfig | string | false |
 | secretProviderClassName | SecretProviderClassName | string | false |
 | aws | AWS | *[AWSSpec](#awsspec) | false |
 | azure | Azure | *[AzureSpec](#azurespec) | false |
@@ -237,7 +235,6 @@ Only one cloud provider must be defined at the single time.
 | kubevirt | Kubevirt | *[KubevirtSpec](#kubevirtspec) | false |
 | nutanix | Nutanix | *[NutanixSpec](#nutanixspec) | false |
 | openstack | Openstack | *[OpenstackSpec](#openstackspec) | false |
-| equinixmetal | EquinixMetal | *[EquinixMetalSpec](#equinixmetalspec) | false |
 | vmwareCloudDirector | VMware Cloud Director | *[VMwareCloudDirectorSpec](#vmwareclouddirectorspec) | false |
 | vsphere | Vsphere | *[VsphereSpec](#vspherespec) | false |
 | none | None | *[NoneSpec](#nonespec) | false |
@@ -352,8 +349,8 @@ ControlPlaneConfig defines control plane nodes
 
 | Field | Description | Scheme | Required |
 | ----- | ----------- | ------ | -------- |
-| hosts | Hosts array of all control plane hosts. | [][HostConfig](#hostconfig) | true |
-| nodeSets |  | [][NodeSet](#nodeset) | true |
+| hosts | Hosts array of all control plane hosts. | [][HostConfig](#hostconfig) | false |
+| nodeSets |  | [][NodeSet](#nodeset) | false |
 
 [Back to Group](#v1beta3)
 
@@ -418,15 +415,6 @@ Encryption Providers feature flag
 | ----- | ----------- | ------ | -------- |
 | enable | Enable | bool | true |
 | customEncryptionConfiguration | CustomEncryptionConfiguration | string | true |
-
-[Back to Group](#v1beta3)
-
-### EquinixMetalSpec
-
-EquinixMetalSpec defines the Equinix Metal cloud provider
-
-| Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
 
 [Back to Group](#v1beta3)
 
@@ -641,9 +629,9 @@ KubeOneCluster is KubeOne Cluster API Schema
 | ----- | ----------- | ------ | -------- |
 | name | Name is the name of the cluster. | string | true |
 | controlPlane | ControlPlane describes the control plane nodes and how to access them. | [ControlPlaneConfig](#controlplaneconfig) | true |
+| kubeletConfig | KubeletConfig used to generate cluster's KubeletConfiguration that will be used along with kubeadm | [KubeletConfig](#kubeletconfig) | false |
 | apiEndpoint | APIEndpoint are pairs of address and port used to communicate with the Kubernetes API. | [APIEndpoint](#apiendpoint) | true |
 | cloudProvider | CloudProvider configures the cloud provider specific features. | [CloudProviderSpec](#cloudproviderspec) | true |
-| kubeletConfig | KubeletConfig used to generate cluster's KubeletConfiguration that will be used along with kubeadm | [KubeletConfig](#kubeletconfig) | false |
 | versions | Versions defines which Kubernetes version will be installed. | [VersionConfig](#versionconfig) | true |
 | containerRuntime | ContainerRuntime defines which container runtime will be installed | [ContainerRuntimeConfig](#containerruntimeconfig) | false |
 | clusterNetwork | ClusterNetwork configures the in-cluster networking. | [ClusterNetworkConfig](#clusternetworkconfig) | false |
@@ -652,14 +640,13 @@ KubeOneCluster is KubeOne Cluster API Schema
 | dynamicWorkers | DynamicWorkers describes the worker nodes that are managed by Kubermatic machine-controller/Cluster-API. | [][DynamicWorkerConfig](#dynamicworkerconfig) | false |
 | machineController | MachineController configures the Kubermatic machine-controller component. | *[MachineControllerConfig](#machinecontrollerconfig) | false |
 | operatingSystemManager | OperatingSystemManager configures the Kubermatic operating-system-manager component. | *[OperatingSystemManagerConfig](#operatingsystemmanagerconfig) | false |
-| caBundle | CABundle PEM encoded global CA.\n\nDeprecated: Use CertificateAuthorithyConfig instead. Will be overriten by certificateAuthority.bundle if set. | string | false |
-| certificateAuthority | CertificateAuthority configures Central Authority certificate. | [CertificateAuthorithyConfig](#certificateauthorithyconfig) | false |
+| certificateAuthority | CertificateAuthority configures Central Authority certificate. | [CertificateAuthorityConfig](#certificateauthorityconfig) | false |
 | features | Features enables and configures additional cluster features. | [Features](#features) | false |
 | addons | Addons are used to deploy additional manifests. | *[Addons](#addons) | false |
 | systemPackages | SystemPackages configure kubeone behaviour regarding OS packages. | *[SystemPackages](#systempackages) | false |
 | registryConfiguration | RegistryConfiguration configures how Docker images are pulled from an image registry | *[RegistryConfiguration](#registryconfiguration) | false |
 | loggingConfig | LoggingConfig configures the Kubelet's log rotation | [LoggingConfig](#loggingconfig) | false |
-| tlsCipherSuites | TLSCipherSuites allows to configure TLS cipher suites for different components. See https://pkg.go.dev/crypto/tls#pkg-constants for possible values. | [TLSCipherSuites](#tlsciphersuites) | true |
+| tlsCipherSuites | TLSCipherSuites allows to configure TLS cipher suites for different components. See https://pkg.go.dev/crypto/tls#pkg-constants for possible values. | [TLSCipherSuites](#tlsciphersuites) | false |
 | controlPlaneComponents | ControlPlaneComponents configures the Kubernetes control plane components | *[ControlPlaneComponents](#controlplanecomponents) | false |
 
 [Back to Group](#v1beta3)
@@ -670,9 +657,10 @@ KubeProxyConfig defines configured kube-proxy mode, default is iptables mode
 
 | Field | Description | Scheme | Required |
 | ----- | ----------- | ------ | -------- |
-| skipInstallation | SkipInstallation will skip the installation of kube-proxy default value is false | bool | true |
-| ipvs | IPVS config | *[IPVSConfig](#ipvsconfig) | true |
-| iptables | IPTables config | *[IPTables](#iptables) | true |
+| skipInstallation | SkipInstallation will skip the installation of kube-proxy default value is false | bool | false |
+| ipvs | IPVS config | *[IPVSConfig](#ipvsconfig) | false |
+| iptables | IPTables config | *[IPTables](#iptables) | false |
+| nftables | NFTables config | *[NFTables](#nftables) | false |
 
 [Back to Group](#v1beta3)
 
@@ -757,6 +745,15 @@ MetricsServer feature flag
 | Field | Description | Scheme | Required |
 | ----- | ----------- | ------ | -------- |
 | enable | Enable deployment of metrics-server. Default value is true. | bool | false |
+
+[Back to Group](#v1beta3)
+
+### NFTables
+
+NFTables
+
+| Field | Description | Scheme | Required |
+| ----- | ----------- | ------ | -------- |
 
 [Back to Group](#v1beta3)
 
@@ -873,6 +870,7 @@ OpenstackSpec defines the Openstack provider
 
 | Field | Description | Scheme | Required |
 | ----- | ----------- | ------ | -------- |
+| cloudConfig | CloudConfig | string | false |
 | controlPlane | ControlPlane configures control plane provisioning on OpenStack | *[OpenstackControlPlane](#openstackcontrolplane) | false |
 
 [Back to Group](#v1beta3)
@@ -1080,16 +1078,8 @@ VsphereSpec defines the vSphere provider
 
 | Field | Description | Scheme | Required |
 | ----- | ----------- | ------ | -------- |
-
-[Back to Group](#v1beta3)
-
-### WeaveNetSpec
-
-WeaveNetSpec defines the WeaveNet CNI plugin
-
-| Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
-| encrypted | Encrypted | bool | false |
+| cloudConfig | CloudConfig | string | false |
+| csiConfig | CSIConfig | string | false |
 
 [Back to Group](#v1beta3)
 
@@ -1150,7 +1140,7 @@ WeaveNetSpec defines the WeaveNet CNI plugin
 | policyFilePath | PolicyFilePath is a path on local file system to the audit policy manifest which defines what events should be recorded and what data they should include. PolicyFilePath is a required field. More info: https://kubernetes.io/docs/tasks/debug-application-cluster/audit/#audit-policy | string | true |
 | configFilePath | ConfigFilePath is a path on local file system to a kubeconfig formatted file that defines how kube-apiserver can connect to the audit webhook. ConfigFilePath is a required field. More info: https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/#webhook-backend | string | true |
 | initialBackOff | InitialBackOff defines the amount of time to wait before retrying the first failed request. Defaults to 10s. | metav1.Duration | false |
-| mode | Mode defines the strategy for sending audit events. Blocking indicates sending events should block server responses. Batch causes the backend to buffer and write events asynchronously. Known modes are batch,blocking,blocking-strict. Defaults to batch. | string | false |
+| mode | Mode defines the strategy for sending audit events. Blocking indicates sending events should block server responses. Batch causes the backend to buffer and write events asynchronously. Known modes are batch,blocking,blocking-strict. Defaults to batch. | WebhookMode | false |
 | version | Version defines API group and version used for serializing audit events written to webhook. Defaults to audit.k8s.io/v1 | string | false |
 | batch | Batch defines settings for controlling event batching. Only applicable if webhook mode is set to batch. | [WebHookAuditLogBatchConfig](#webhookauditlogbatchconfig) | false |
 | truncate | Truncate defines settings for controlling event truncation. | [WebHookAuditLogTruncateConfig](#webhookauditlogtruncateconfig) | false |

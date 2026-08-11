@@ -25,7 +25,6 @@ import (
 	"k8c.io/kubeone/pkg/clientutil"
 	"k8c.io/kubeone/pkg/fail"
 	"k8c.io/kubeone/pkg/state"
-	"k8c.io/kubeone/pkg/templates/resources"
 
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
@@ -294,10 +293,6 @@ func migrateVsphereAddon(s *state.State) error {
 		s.DynamicClient,
 		genNamedObject[corev1.Service](vSphereDeploymentName, metav1.NamespaceSystem),
 	)
-}
-
-func migratePacketToEquinixCCM(s *state.State) error {
-	return DeleteAddonByName(s, resources.AddonCCMPacket)
 }
 
 func migrateMetricsServer(state *state.State) error {

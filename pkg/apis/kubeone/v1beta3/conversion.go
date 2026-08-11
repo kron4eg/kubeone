@@ -22,11 +22,6 @@ import (
 	conversion "k8s.io/apimachinery/pkg/conversion"
 )
 
-func Convert_kubeone_KubeOneCluster_To_v1beta3_KubeOneCluster(in *kubeoneapi.KubeOneCluster, out *KubeOneCluster, scope conversion.Scope) error {
-	// AssetsConfiguration has been removed in the v1beta3 API
-	return autoConvert_kubeone_KubeOneCluster_To_v1beta3_KubeOneCluster(in, out, scope)
-}
-
 func Convert_v1beta3_ContainerRuntimeConfig_To_kubeone_ContainerRuntimeConfig(in *ContainerRuntimeConfig, out *kubeoneapi.ContainerRuntimeConfig, scope conversion.Scope) error {
 	return autoConvert_v1beta3_ContainerRuntimeConfig_To_kubeone_ContainerRuntimeConfig(in, out, scope)
 }

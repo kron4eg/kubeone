@@ -129,13 +129,13 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
-	if err := s.AddGeneratedConversionFunc((*CertificateAuthorithyConfig)(nil), (*kubeone.CertificateAuthorithyConfig)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1beta3_CertificateAuthorithyConfig_To_kubeone_CertificateAuthorithyConfig(a.(*CertificateAuthorithyConfig), b.(*kubeone.CertificateAuthorithyConfig), scope)
+	if err := s.AddGeneratedConversionFunc((*CertificateAuthorityConfig)(nil), (*kubeone.CertificateAuthorityConfig)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta3_CertificateAuthorityConfig_To_kubeone_CertificateAuthorityConfig(a.(*CertificateAuthorityConfig), b.(*kubeone.CertificateAuthorityConfig), scope)
 	}); err != nil {
 		return err
 	}
-	if err := s.AddGeneratedConversionFunc((*kubeone.CertificateAuthorithyConfig)(nil), (*CertificateAuthorithyConfig)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_kubeone_CertificateAuthorithyConfig_To_v1beta3_CertificateAuthorithyConfig(a.(*kubeone.CertificateAuthorithyConfig), b.(*CertificateAuthorithyConfig), scope)
+	if err := s.AddGeneratedConversionFunc((*kubeone.CertificateAuthorityConfig)(nil), (*CertificateAuthorityConfig)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_kubeone_CertificateAuthorityConfig_To_v1beta3_CertificateAuthorityConfig(a.(*kubeone.CertificateAuthorityConfig), b.(*CertificateAuthorityConfig), scope)
 	}); err != nil {
 		return err
 	}
@@ -294,16 +294,6 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
-	if err := s.AddGeneratedConversionFunc((*EquinixMetalSpec)(nil), (*kubeone.EquinixMetalSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1beta3_EquinixMetalSpec_To_kubeone_EquinixMetalSpec(a.(*EquinixMetalSpec), b.(*kubeone.EquinixMetalSpec), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*kubeone.EquinixMetalSpec)(nil), (*EquinixMetalSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_kubeone_EquinixMetalSpec_To_v1beta3_EquinixMetalSpec(a.(*kubeone.EquinixMetalSpec), b.(*EquinixMetalSpec), scope)
-	}); err != nil {
-		return err
-	}
 	if err := s.AddGeneratedConversionFunc((*EtcdConfig)(nil), (*kubeone.EtcdConfig)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1beta3_EtcdConfig_To_kubeone_EtcdConfig(a.(*EtcdConfig), b.(*kubeone.EtcdConfig), scope)
 	}); err != nil {
@@ -459,6 +449,11 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.AddGeneratedConversionFunc((*kubeone.KubeOneCluster)(nil), (*KubeOneCluster)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_kubeone_KubeOneCluster_To_v1beta3_KubeOneCluster(a.(*kubeone.KubeOneCluster), b.(*KubeOneCluster), scope)
+	}); err != nil {
+		return err
+	}
 	if err := s.AddGeneratedConversionFunc((*KubeProxyConfig)(nil), (*kubeone.KubeProxyConfig)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1beta3_KubeProxyConfig_To_kubeone_KubeProxyConfig(a.(*KubeProxyConfig), b.(*kubeone.KubeProxyConfig), scope)
 	}); err != nil {
@@ -536,6 +531,16 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddGeneratedConversionFunc((*kubeone.MetricsServer)(nil), (*MetricsServer)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_kubeone_MetricsServer_To_v1beta3_MetricsServer(a.(*kubeone.MetricsServer), b.(*MetricsServer), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*NFTables)(nil), (*kubeone.NFTables)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta3_NFTables_To_kubeone_NFTables(a.(*NFTables), b.(*kubeone.NFTables), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*kubeone.NFTables)(nil), (*NFTables)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_kubeone_NFTables_To_v1beta3_NFTables(a.(*kubeone.NFTables), b.(*NFTables), scope)
 	}); err != nil {
 		return err
 	}
@@ -809,16 +814,6 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
-	if err := s.AddGeneratedConversionFunc((*WeaveNetSpec)(nil), (*kubeone.WeaveNetSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1beta3_WeaveNetSpec_To_kubeone_WeaveNetSpec(a.(*WeaveNetSpec), b.(*kubeone.WeaveNetSpec), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*kubeone.WeaveNetSpec)(nil), (*WeaveNetSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_kubeone_WeaveNetSpec_To_v1beta3_WeaveNetSpec(a.(*kubeone.WeaveNetSpec), b.(*WeaveNetSpec), scope)
-	}); err != nil {
-		return err
-	}
 	if err := s.AddGeneratedConversionFunc((*WebHookAuditLogBatchConfig)(nil), (*kubeone.WebHookAuditLogBatchConfig)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1beta3_WebHookAuditLogBatchConfig_To_kubeone_WebHookAuditLogBatchConfig(a.(*WebHookAuditLogBatchConfig), b.(*kubeone.WebHookAuditLogBatchConfig), scope)
 	}); err != nil {
@@ -874,11 +869,6 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
-	if err := s.AddConversionFunc((*kubeone.KubeOneCluster)(nil), (*KubeOneCluster)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_kubeone_KubeOneCluster_To_v1beta3_KubeOneCluster(a.(*kubeone.KubeOneCluster), b.(*KubeOneCluster), scope)
-	}); err != nil {
-		return err
-	}
 	if err := s.AddConversionFunc((*CiliumSpec)(nil), (*kubeone.CiliumSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1beta3_CiliumSpec_To_kubeone_CiliumSpec(a.(*CiliumSpec), b.(*kubeone.CiliumSpec), scope)
 	}); err != nil {
@@ -917,6 +907,7 @@ func Convert_kubeone_APIEndpoint_To_v1beta3_APIEndpoint(in *kubeone.APIEndpoint,
 }
 
 func autoConvert_v1beta3_AWSSpec_To_kubeone_AWSSpec(in *AWSSpec, out *kubeone.AWSSpec, s conversion.Scope) error {
+	out.CloudConfig = in.CloudConfig
 	return nil
 }
 
@@ -926,6 +917,7 @@ func Convert_v1beta3_AWSSpec_To_kubeone_AWSSpec(in *AWSSpec, out *kubeone.AWSSpe
 }
 
 func autoConvert_kubeone_AWSSpec_To_v1beta3_AWSSpec(in *kubeone.AWSSpec, out *AWSSpec, s conversion.Scope) error {
+	out.CloudConfig = in.CloudConfig
 	return nil
 }
 
@@ -1025,6 +1017,7 @@ func Convert_kubeone_AlwaysPullImages_To_v1beta3_AlwaysPullImages(in *kubeone.Al
 }
 
 func autoConvert_v1beta3_AzureSpec_To_kubeone_AzureSpec(in *AzureSpec, out *kubeone.AzureSpec, s conversion.Scope) error {
+	out.CloudConfig = in.CloudConfig
 	return nil
 }
 
@@ -1034,6 +1027,7 @@ func Convert_v1beta3_AzureSpec_To_kubeone_AzureSpec(in *AzureSpec, out *kubeone.
 }
 
 func autoConvert_kubeone_AzureSpec_To_v1beta3_AzureSpec(in *kubeone.AzureSpec, out *AzureSpec, s conversion.Scope) error {
+	out.CloudConfig = in.CloudConfig
 	return nil
 }
 
@@ -1053,7 +1047,6 @@ func autoConvert_v1beta3_CNI_To_kubeone_CNI(in *CNI, out *kubeone.CNI, s convers
 	} else {
 		out.Cilium = nil
 	}
-	out.WeaveNet = (*kubeone.WeaveNetSpec)(unsafe.Pointer(in.WeaveNet))
 	out.External = (*kubeone.ExternalCNISpec)(unsafe.Pointer(in.External))
 	return nil
 }
@@ -1074,7 +1067,6 @@ func autoConvert_kubeone_CNI_To_v1beta3_CNI(in *kubeone.CNI, out *CNI, s convers
 	} else {
 		out.Cilium = nil
 	}
-	out.WeaveNet = (*WeaveNetSpec)(unsafe.Pointer(in.WeaveNet))
 	out.External = (*ExternalCNISpec)(unsafe.Pointer(in.External))
 	return nil
 }
@@ -1104,7 +1096,7 @@ func Convert_kubeone_CanalSpec_To_v1beta3_CanalSpec(in *kubeone.CanalSpec, out *
 	return autoConvert_kubeone_CanalSpec_To_v1beta3_CanalSpec(in, out, s)
 }
 
-func autoConvert_v1beta3_CertificateAuthorithyConfig_To_kubeone_CertificateAuthorithyConfig(in *CertificateAuthorithyConfig, out *kubeone.CertificateAuthorithyConfig, s conversion.Scope) error {
+func autoConvert_v1beta3_CertificateAuthorityConfig_To_kubeone_CertificateAuthorityConfig(in *CertificateAuthorityConfig, out *kubeone.CertificateAuthorityConfig, s conversion.Scope) error {
 	out.Bundle = in.Bundle
 	out.File = in.File
 	out.CertificateValidityPeriod = (*v1.Duration)(unsafe.Pointer(in.CertificateValidityPeriod))
@@ -1112,12 +1104,12 @@ func autoConvert_v1beta3_CertificateAuthorithyConfig_To_kubeone_CertificateAutho
 	return nil
 }
 
-// Convert_v1beta3_CertificateAuthorithyConfig_To_kubeone_CertificateAuthorithyConfig is an autogenerated conversion function.
-func Convert_v1beta3_CertificateAuthorithyConfig_To_kubeone_CertificateAuthorithyConfig(in *CertificateAuthorithyConfig, out *kubeone.CertificateAuthorithyConfig, s conversion.Scope) error {
-	return autoConvert_v1beta3_CertificateAuthorithyConfig_To_kubeone_CertificateAuthorithyConfig(in, out, s)
+// Convert_v1beta3_CertificateAuthorityConfig_To_kubeone_CertificateAuthorityConfig is an autogenerated conversion function.
+func Convert_v1beta3_CertificateAuthorityConfig_To_kubeone_CertificateAuthorityConfig(in *CertificateAuthorityConfig, out *kubeone.CertificateAuthorityConfig, s conversion.Scope) error {
+	return autoConvert_v1beta3_CertificateAuthorityConfig_To_kubeone_CertificateAuthorityConfig(in, out, s)
 }
 
-func autoConvert_kubeone_CertificateAuthorithyConfig_To_v1beta3_CertificateAuthorithyConfig(in *kubeone.CertificateAuthorithyConfig, out *CertificateAuthorithyConfig, s conversion.Scope) error {
+func autoConvert_kubeone_CertificateAuthorityConfig_To_v1beta3_CertificateAuthorityConfig(in *kubeone.CertificateAuthorityConfig, out *CertificateAuthorityConfig, s conversion.Scope) error {
 	out.Bundle = in.Bundle
 	out.File = in.File
 	out.CertificateValidityPeriod = (*v1.Duration)(unsafe.Pointer(in.CertificateValidityPeriod))
@@ -1125,13 +1117,13 @@ func autoConvert_kubeone_CertificateAuthorithyConfig_To_v1beta3_CertificateAutho
 	return nil
 }
 
-// Convert_kubeone_CertificateAuthorithyConfig_To_v1beta3_CertificateAuthorithyConfig is an autogenerated conversion function.
-func Convert_kubeone_CertificateAuthorithyConfig_To_v1beta3_CertificateAuthorithyConfig(in *kubeone.CertificateAuthorithyConfig, out *CertificateAuthorithyConfig, s conversion.Scope) error {
-	return autoConvert_kubeone_CertificateAuthorithyConfig_To_v1beta3_CertificateAuthorithyConfig(in, out, s)
+// Convert_kubeone_CertificateAuthorityConfig_To_v1beta3_CertificateAuthorityConfig is an autogenerated conversion function.
+func Convert_kubeone_CertificateAuthorityConfig_To_v1beta3_CertificateAuthorityConfig(in *kubeone.CertificateAuthorityConfig, out *CertificateAuthorityConfig, s conversion.Scope) error {
+	return autoConvert_kubeone_CertificateAuthorityConfig_To_v1beta3_CertificateAuthorityConfig(in, out, s)
 }
 
 func autoConvert_v1beta3_CiliumSpec_To_kubeone_CiliumSpec(in *CiliumSpec, out *kubeone.CiliumSpec, s conversion.Scope) error {
-	out.KubeProxyReplacement = in.KubeProxyReplacement
+	// INFO: in.KubeProxyReplacement opted out of conversion generation
 	out.EnableHubble = in.EnableHubble
 	out.EnableL2Announcements = in.EnableL2Announcements
 	out.EnableGatewayAPI = in.EnableGatewayAPI
@@ -1151,8 +1143,6 @@ func autoConvert_kubeone_CiliumSpec_To_v1beta3_CiliumSpec(in *kubeone.CiliumSpec
 func autoConvert_v1beta3_CloudProviderSpec_To_kubeone_CloudProviderSpec(in *CloudProviderSpec, out *kubeone.CloudProviderSpec, s conversion.Scope) error {
 	out.External = in.External
 	out.DisableBundledCSIDrivers = in.DisableBundledCSIDrivers
-	out.CloudConfig = in.CloudConfig
-	out.CSIConfig = in.CSIConfig
 	out.SecretProviderClassName = in.SecretProviderClassName
 	out.AWS = (*kubeone.AWSSpec)(unsafe.Pointer(in.AWS))
 	out.Azure = (*kubeone.AzureSpec)(unsafe.Pointer(in.Azure))
@@ -1162,7 +1152,6 @@ func autoConvert_v1beta3_CloudProviderSpec_To_kubeone_CloudProviderSpec(in *Clou
 	out.Kubevirt = (*kubeone.KubevirtSpec)(unsafe.Pointer(in.Kubevirt))
 	out.Nutanix = (*kubeone.NutanixSpec)(unsafe.Pointer(in.Nutanix))
 	out.Openstack = (*kubeone.OpenstackSpec)(unsafe.Pointer(in.Openstack))
-	out.EquinixMetal = (*kubeone.EquinixMetalSpec)(unsafe.Pointer(in.EquinixMetal))
 	out.VMwareCloudDirector = (*kubeone.VMwareCloudDirectorSpec)(unsafe.Pointer(in.VMwareCloudDirector))
 	out.Vsphere = (*kubeone.VsphereSpec)(unsafe.Pointer(in.Vsphere))
 	out.None = (*kubeone.NoneSpec)(unsafe.Pointer(in.None))
@@ -1177,8 +1166,6 @@ func Convert_v1beta3_CloudProviderSpec_To_kubeone_CloudProviderSpec(in *CloudPro
 func autoConvert_kubeone_CloudProviderSpec_To_v1beta3_CloudProviderSpec(in *kubeone.CloudProviderSpec, out *CloudProviderSpec, s conversion.Scope) error {
 	out.External = in.External
 	out.DisableBundledCSIDrivers = in.DisableBundledCSIDrivers
-	out.CloudConfig = in.CloudConfig
-	out.CSIConfig = in.CSIConfig
 	out.SecretProviderClassName = in.SecretProviderClassName
 	out.AWS = (*AWSSpec)(unsafe.Pointer(in.AWS))
 	out.Azure = (*AzureSpec)(unsafe.Pointer(in.Azure))
@@ -1188,7 +1175,6 @@ func autoConvert_kubeone_CloudProviderSpec_To_v1beta3_CloudProviderSpec(in *kube
 	out.Kubevirt = (*KubevirtSpec)(unsafe.Pointer(in.Kubevirt))
 	out.Nutanix = (*NutanixSpec)(unsafe.Pointer(in.Nutanix))
 	out.Openstack = (*OpenstackSpec)(unsafe.Pointer(in.Openstack))
-	out.EquinixMetal = (*EquinixMetalSpec)(unsafe.Pointer(in.EquinixMetal))
 	out.VMwareCloudDirector = (*VMwareCloudDirectorSpec)(unsafe.Pointer(in.VMwareCloudDirector))
 	out.Vsphere = (*VsphereSpec)(unsafe.Pointer(in.Vsphere))
 	out.None = (*NoneSpec)(unsafe.Pointer(in.None))
@@ -1567,24 +1553,6 @@ func autoConvert_kubeone_EncryptionProviders_To_v1beta3_EncryptionProviders(in *
 // Convert_kubeone_EncryptionProviders_To_v1beta3_EncryptionProviders is an autogenerated conversion function.
 func Convert_kubeone_EncryptionProviders_To_v1beta3_EncryptionProviders(in *kubeone.EncryptionProviders, out *EncryptionProviders, s conversion.Scope) error {
 	return autoConvert_kubeone_EncryptionProviders_To_v1beta3_EncryptionProviders(in, out, s)
-}
-
-func autoConvert_v1beta3_EquinixMetalSpec_To_kubeone_EquinixMetalSpec(in *EquinixMetalSpec, out *kubeone.EquinixMetalSpec, s conversion.Scope) error {
-	return nil
-}
-
-// Convert_v1beta3_EquinixMetalSpec_To_kubeone_EquinixMetalSpec is an autogenerated conversion function.
-func Convert_v1beta3_EquinixMetalSpec_To_kubeone_EquinixMetalSpec(in *EquinixMetalSpec, out *kubeone.EquinixMetalSpec, s conversion.Scope) error {
-	return autoConvert_v1beta3_EquinixMetalSpec_To_kubeone_EquinixMetalSpec(in, out, s)
-}
-
-func autoConvert_kubeone_EquinixMetalSpec_To_v1beta3_EquinixMetalSpec(in *kubeone.EquinixMetalSpec, out *EquinixMetalSpec, s conversion.Scope) error {
-	return nil
-}
-
-// Convert_kubeone_EquinixMetalSpec_To_v1beta3_EquinixMetalSpec is an autogenerated conversion function.
-func Convert_kubeone_EquinixMetalSpec_To_v1beta3_EquinixMetalSpec(in *kubeone.EquinixMetalSpec, out *EquinixMetalSpec, s conversion.Scope) error {
-	return autoConvert_kubeone_EquinixMetalSpec_To_v1beta3_EquinixMetalSpec(in, out, s)
 }
 
 func autoConvert_v1beta3_EtcdConfig_To_kubeone_EtcdConfig(in *EtcdConfig, out *kubeone.EtcdConfig, s conversion.Scope) error {
@@ -2010,13 +1978,13 @@ func autoConvert_v1beta3_KubeOneCluster_To_kubeone_KubeOneCluster(in *KubeOneClu
 	if err := Convert_v1beta3_ControlPlaneConfig_To_kubeone_ControlPlaneConfig(&in.ControlPlane, &out.ControlPlane, s); err != nil {
 		return err
 	}
+	if err := Convert_v1beta3_KubeletConfig_To_kubeone_KubeletConfig(&in.KubeletConfig, &out.KubeletConfig, s); err != nil {
+		return err
+	}
 	if err := Convert_v1beta3_APIEndpoint_To_kubeone_APIEndpoint(&in.APIEndpoint, &out.APIEndpoint, s); err != nil {
 		return err
 	}
 	if err := Convert_v1beta3_CloudProviderSpec_To_kubeone_CloudProviderSpec(&in.CloudProvider, &out.CloudProvider, s); err != nil {
-		return err
-	}
-	if err := Convert_v1beta3_KubeletConfig_To_kubeone_KubeletConfig(&in.KubeletConfig, &out.KubeletConfig, s); err != nil {
 		return err
 	}
 	if err := Convert_v1beta3_VersionConfig_To_kubeone_VersionConfig(&in.Versions, &out.Versions, s); err != nil {
@@ -2037,8 +2005,7 @@ func autoConvert_v1beta3_KubeOneCluster_To_kubeone_KubeOneCluster(in *KubeOneClu
 	out.DynamicWorkers = *(*[]kubeone.DynamicWorkerConfig)(unsafe.Pointer(&in.DynamicWorkers))
 	out.MachineController = (*kubeone.MachineControllerConfig)(unsafe.Pointer(in.MachineController))
 	out.OperatingSystemManager = (*kubeone.OperatingSystemManagerConfig)(unsafe.Pointer(in.OperatingSystemManager))
-	out.CABundle = in.CABundle
-	if err := Convert_v1beta3_CertificateAuthorithyConfig_To_kubeone_CertificateAuthorithyConfig(&in.CertificateAuthority, &out.CertificateAuthority, s); err != nil {
+	if err := Convert_v1beta3_CertificateAuthorityConfig_To_kubeone_CertificateAuthorityConfig(&in.CertificateAuthority, &out.CertificateAuthority, s); err != nil {
 		return err
 	}
 	if err := Convert_v1beta3_Features_To_kubeone_Features(&in.Features, &out.Features, s); err != nil {
@@ -2094,8 +2061,7 @@ func autoConvert_kubeone_KubeOneCluster_To_v1beta3_KubeOneCluster(in *kubeone.Ku
 	out.DynamicWorkers = *(*[]DynamicWorkerConfig)(unsafe.Pointer(&in.DynamicWorkers))
 	out.MachineController = (*MachineControllerConfig)(unsafe.Pointer(in.MachineController))
 	out.OperatingSystemManager = (*OperatingSystemManagerConfig)(unsafe.Pointer(in.OperatingSystemManager))
-	out.CABundle = in.CABundle
-	if err := Convert_kubeone_CertificateAuthorithyConfig_To_v1beta3_CertificateAuthorithyConfig(&in.CertificateAuthority, &out.CertificateAuthority, s); err != nil {
+	if err := Convert_kubeone_CertificateAuthorityConfig_To_v1beta3_CertificateAuthorityConfig(&in.CertificateAuthority, &out.CertificateAuthority, s); err != nil {
 		return err
 	}
 	if err := Convert_kubeone_Features_To_v1beta3_Features(&in.Features, &out.Features, s); err != nil {
@@ -2103,7 +2069,6 @@ func autoConvert_kubeone_KubeOneCluster_To_v1beta3_KubeOneCluster(in *kubeone.Ku
 	}
 	out.Addons = (*Addons)(unsafe.Pointer(in.Addons))
 	out.SystemPackages = (*SystemPackages)(unsafe.Pointer(in.SystemPackages))
-	// WARNING: in.AssetConfiguration requires manual conversion: does not exist in peer-type
 	out.RegistryConfiguration = (*RegistryConfiguration)(unsafe.Pointer(in.RegistryConfiguration))
 	if err := Convert_kubeone_LoggingConfig_To_v1beta3_LoggingConfig(&in.LoggingConfig, &out.LoggingConfig, s); err != nil {
 		return err
@@ -2115,10 +2080,16 @@ func autoConvert_kubeone_KubeOneCluster_To_v1beta3_KubeOneCluster(in *kubeone.Ku
 	return nil
 }
 
+// Convert_kubeone_KubeOneCluster_To_v1beta3_KubeOneCluster is an autogenerated conversion function.
+func Convert_kubeone_KubeOneCluster_To_v1beta3_KubeOneCluster(in *kubeone.KubeOneCluster, out *KubeOneCluster, s conversion.Scope) error {
+	return autoConvert_kubeone_KubeOneCluster_To_v1beta3_KubeOneCluster(in, out, s)
+}
+
 func autoConvert_v1beta3_KubeProxyConfig_To_kubeone_KubeProxyConfig(in *KubeProxyConfig, out *kubeone.KubeProxyConfig, s conversion.Scope) error {
 	out.SkipInstallation = in.SkipInstallation
 	out.IPVS = (*kubeone.IPVSConfig)(unsafe.Pointer(in.IPVS))
 	out.IPTables = (*kubeone.IPTables)(unsafe.Pointer(in.IPTables))
+	out.NFTables = (*kubeone.NFTables)(unsafe.Pointer(in.NFTables))
 	return nil
 }
 
@@ -2131,6 +2102,7 @@ func autoConvert_kubeone_KubeProxyConfig_To_v1beta3_KubeProxyConfig(in *kubeone.
 	out.SkipInstallation = in.SkipInstallation
 	out.IPVS = (*IPVSConfig)(unsafe.Pointer(in.IPVS))
 	out.IPTables = (*IPTables)(unsafe.Pointer(in.IPTables))
+	out.NFTables = (*NFTables)(unsafe.Pointer(in.NFTables))
 	return nil
 }
 
@@ -2309,6 +2281,24 @@ func autoConvert_kubeone_MetricsServer_To_v1beta3_MetricsServer(in *kubeone.Metr
 // Convert_kubeone_MetricsServer_To_v1beta3_MetricsServer is an autogenerated conversion function.
 func Convert_kubeone_MetricsServer_To_v1beta3_MetricsServer(in *kubeone.MetricsServer, out *MetricsServer, s conversion.Scope) error {
 	return autoConvert_kubeone_MetricsServer_To_v1beta3_MetricsServer(in, out, s)
+}
+
+func autoConvert_v1beta3_NFTables_To_kubeone_NFTables(in *NFTables, out *kubeone.NFTables, s conversion.Scope) error {
+	return nil
+}
+
+// Convert_v1beta3_NFTables_To_kubeone_NFTables is an autogenerated conversion function.
+func Convert_v1beta3_NFTables_To_kubeone_NFTables(in *NFTables, out *kubeone.NFTables, s conversion.Scope) error {
+	return autoConvert_v1beta3_NFTables_To_kubeone_NFTables(in, out, s)
+}
+
+func autoConvert_kubeone_NFTables_To_v1beta3_NFTables(in *kubeone.NFTables, out *NFTables, s conversion.Scope) error {
+	return nil
+}
+
+// Convert_kubeone_NFTables_To_v1beta3_NFTables is an autogenerated conversion function.
+func Convert_kubeone_NFTables_To_v1beta3_NFTables(in *kubeone.NFTables, out *NFTables, s conversion.Scope) error {
+	return autoConvert_kubeone_NFTables_To_v1beta3_NFTables(in, out, s)
 }
 
 func autoConvert_v1beta3_NodeLocalDNS_To_kubeone_NodeLocalDNS(in *NodeLocalDNS, out *kubeone.NodeLocalDNS, s conversion.Scope) error {
@@ -2546,6 +2536,7 @@ func Convert_kubeone_OpenstackLoadBalancer_To_v1beta3_OpenstackLoadBalancer(in *
 }
 
 func autoConvert_v1beta3_OpenstackSpec_To_kubeone_OpenstackSpec(in *OpenstackSpec, out *kubeone.OpenstackSpec, s conversion.Scope) error {
+	out.CloudConfig = in.CloudConfig
 	out.ControlPlane = (*kubeone.OpenstackControlPlane)(unsafe.Pointer(in.ControlPlane))
 	return nil
 }
@@ -2556,6 +2547,7 @@ func Convert_v1beta3_OpenstackSpec_To_kubeone_OpenstackSpec(in *OpenstackSpec, o
 }
 
 func autoConvert_kubeone_OpenstackSpec_To_v1beta3_OpenstackSpec(in *kubeone.OpenstackSpec, out *OpenstackSpec, s conversion.Scope) error {
+	out.CloudConfig = in.CloudConfig
 	out.ControlPlane = (*OpenstackControlPlane)(unsafe.Pointer(in.ControlPlane))
 	return nil
 }
@@ -2970,6 +2962,8 @@ func Convert_kubeone_VersionConfig_To_v1beta3_VersionConfig(in *kubeone.VersionC
 }
 
 func autoConvert_v1beta3_VsphereSpec_To_kubeone_VsphereSpec(in *VsphereSpec, out *kubeone.VsphereSpec, s conversion.Scope) error {
+	out.CloudConfig = in.CloudConfig
+	out.CSIConfig = in.CSIConfig
 	return nil
 }
 
@@ -2979,32 +2973,14 @@ func Convert_v1beta3_VsphereSpec_To_kubeone_VsphereSpec(in *VsphereSpec, out *ku
 }
 
 func autoConvert_kubeone_VsphereSpec_To_v1beta3_VsphereSpec(in *kubeone.VsphereSpec, out *VsphereSpec, s conversion.Scope) error {
+	out.CloudConfig = in.CloudConfig
+	out.CSIConfig = in.CSIConfig
 	return nil
 }
 
 // Convert_kubeone_VsphereSpec_To_v1beta3_VsphereSpec is an autogenerated conversion function.
 func Convert_kubeone_VsphereSpec_To_v1beta3_VsphereSpec(in *kubeone.VsphereSpec, out *VsphereSpec, s conversion.Scope) error {
 	return autoConvert_kubeone_VsphereSpec_To_v1beta3_VsphereSpec(in, out, s)
-}
-
-func autoConvert_v1beta3_WeaveNetSpec_To_kubeone_WeaveNetSpec(in *WeaveNetSpec, out *kubeone.WeaveNetSpec, s conversion.Scope) error {
-	out.Encrypted = in.Encrypted
-	return nil
-}
-
-// Convert_v1beta3_WeaveNetSpec_To_kubeone_WeaveNetSpec is an autogenerated conversion function.
-func Convert_v1beta3_WeaveNetSpec_To_kubeone_WeaveNetSpec(in *WeaveNetSpec, out *kubeone.WeaveNetSpec, s conversion.Scope) error {
-	return autoConvert_v1beta3_WeaveNetSpec_To_kubeone_WeaveNetSpec(in, out, s)
-}
-
-func autoConvert_kubeone_WeaveNetSpec_To_v1beta3_WeaveNetSpec(in *kubeone.WeaveNetSpec, out *WeaveNetSpec, s conversion.Scope) error {
-	out.Encrypted = in.Encrypted
-	return nil
-}
-
-// Convert_kubeone_WeaveNetSpec_To_v1beta3_WeaveNetSpec is an autogenerated conversion function.
-func Convert_kubeone_WeaveNetSpec_To_v1beta3_WeaveNetSpec(in *kubeone.WeaveNetSpec, out *WeaveNetSpec, s conversion.Scope) error {
-	return autoConvert_kubeone_WeaveNetSpec_To_v1beta3_WeaveNetSpec(in, out, s)
 }
 
 func autoConvert_v1beta3_WebHookAuditLogBatchConfig_To_kubeone_WebHookAuditLogBatchConfig(in *WebHookAuditLogBatchConfig, out *kubeone.WebHookAuditLogBatchConfig, s conversion.Scope) error {
@@ -3135,7 +3111,7 @@ func autoConvert_kubeone_WebhookAuditLogConfig_To_v1beta3_WebhookAuditLogConfig(
 	out.PolicyFilePath = in.PolicyFilePath
 	out.ConfigFilePath = in.ConfigFilePath
 	out.InitialBackOff = in.InitialBackOff
-	out.Mode = string(in.Mode)
+	out.Mode = WebhookMode(in.Mode)
 	out.Version = in.Version
 	if err := Convert_kubeone_WebHookAuditLogBatchConfig_To_v1beta3_WebHookAuditLogBatchConfig(&in.Batch, &out.Batch, s); err != nil {
 		return err

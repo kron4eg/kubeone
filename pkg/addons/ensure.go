@@ -27,7 +27,6 @@ import (
 	"k8c.io/kubeone/pkg/fail"
 	"k8c.io/kubeone/pkg/state"
 	"k8c.io/kubeone/pkg/templates/resources"
-	"k8c.io/kubeone/pkg/templates/weave"
 )
 
 const (
@@ -47,13 +46,10 @@ var embeddedAddons = map[string]string{
 	resources.AddonCCMHetzner:             "",
 	resources.AddonCCMGCP:                 "",
 	resources.AddonCCMOpenStack:           "",
-	resources.AddonCCMEquinixMetal:        "",
-	resources.AddonCCMPacket:              "",
 	resources.AddonCCMVsphere:             "",
 	resources.AddonClusterAutoscaler:      "",
 	resources.AddonCNICanal:               "",
 	resources.AddonCNICilium:              "",
-	resources.AddonCNIWeavenet:            "",
 	resources.AddonCSIAwsEBS:              "",
 	resources.AddonCSIExternalSnapshotter: "",
 	resources.AddonCSIAzureDisk:           "",
@@ -104,19 +100,6 @@ func collectAddons(s *state.State) []addonAction {
 			name: resources.AddonCNICilium,
 			supportFn: func() error {
 				return migrateCiliumHubbleCertsJob(s)
-			},
-		})
-	case s.Cluster.ClusterNetwork.CNI.WeaveNet != nil:
-		addonsToDeploy = append(addonsToDeploy, addonAction{
-			name: resources.AddonCNIWeavenet,
-			supportFn: func() error {
-				if s.Cluster.ClusterNetwork.CNI.WeaveNet.Encrypted {
-					if err := weave.EnsureSecret(s); err != nil {
-						return err
-					}
-				}
-
-				return nil
 			},
 		})
 	}
@@ -552,16 +535,6 @@ func ensureCCMAddons(s *state.State, addonsToDeploy []addonAction) []addonAction
 				name: resources.AddonCCMVsphere,
 				supportFn: func() error {
 					return migrateVsphereAddon(s)
-				},
-			},
-		)
-	case s.Cluster.CloudProvider.EquinixMetal != nil:
-		addonsToDeploy = append(
-			addonsToDeploy,
-			addonAction{
-				name: resources.AddonCCMEquinixMetal,
-				supportFn: func() error {
-					return migratePacketToEquinixCCM(s)
 				},
 			},
 		)

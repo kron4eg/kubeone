@@ -96,7 +96,7 @@ func NewConfig(s *state.State, host kubeoneapi.HostConfig) (*Config, error) {
 		return nil, fail.Config(err, "parsing kubernetes semver")
 	}
 
-	etcdImageTag, etcdExtraArgs := etcdVersionCorruptCheckExtraArgs(kubeSemVer, cluster.AssetConfiguration.Etcd.ImageTag, cluster.TLSCipherSuites.Etcd)
+	etcdImageTag, etcdExtraArgs := etcdVersionCorruptCheckExtraArgs(kubeSemVer, "", cluster.TLSCipherSuites.Etcd)
 
 	if s.Cluster.ClusterNetwork.HasIPv6() && len(host.IPv6Addresses) == 0 {
 		return nil, fmt.Errorf("host must have ipv6 address for %q family", s.Cluster.ClusterNetwork.IPFamily)
@@ -224,11 +224,11 @@ func NewConfig(s *state.State, host kubeoneapi.HostConfig) (*Config, error) {
 			ExtraVolumes: []kubeadmv1beta3.HostPathMount{},
 		},
 		ClusterName:     cluster.Name,
-		ImageRepository: defaults(cluster.AssetConfiguration.Kubernetes.ImageRepository, registryK8sio),
+		ImageRepository: registryK8sio,
 		Etcd: kubeadmv1beta3.Etcd{
 			Local: &kubeadmv1beta3.LocalEtcd{
 				ImageMeta: kubeadmv1beta3.ImageMeta{
-					ImageRepository: defaults(cluster.AssetConfiguration.Etcd.ImageRepository, registryK8sio),
+					ImageRepository: registryK8sio,
 					ImageTag:        etcdImageTag,
 				},
 				ExtraArgs: etcdExtraArgs,
@@ -236,8 +236,8 @@ func NewConfig(s *state.State, host kubeoneapi.HostConfig) (*Config, error) {
 		},
 		DNS: kubeadmv1beta3.DNS{
 			ImageMeta: kubeadmv1beta3.ImageMeta{
-				ImageRepository: defaults(cluster.AssetConfiguration.CoreDNS.ImageRepository, fmt.Sprintf("%s/coredns", registryK8sio)),
-				ImageTag:        cluster.AssetConfiguration.CoreDNS.ImageTag,
+				ImageRepository: fmt.Sprintf("%s/coredns", registryK8sio),
+				ImageTag:        "",
 			},
 		},
 	}
@@ -547,14 +547,6 @@ func etcdVersionCorruptCheckExtraArgs(kubeVersion *semver.Version, etcdImageTag 
 	default:
 		return fixedEtcdVersion, etcdExtraArgs
 	}
-}
-
-func defaults(input, defaultValue string) string {
-	if input != "" {
-		return input
-	}
-
-	return defaultValue
 }
 
 func mergeFeatureGates(featureGates string, additionalFeatureGates map[string]bool) string {

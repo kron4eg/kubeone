@@ -274,11 +274,6 @@ func SetKubeOneClusterDynamicDefaults(cluster *kubeoneapi.KubeOneCluster, creden
 		cluster.CertificateAuthority.Bundle = string(buf)
 	}
 
-	if cluster.CertificateAuthority.Bundle != "" {
-		// Set this for backward compatibility with older addons
-		cluster.CABundle = cluster.CertificateAuthority.Bundle //nolint:staticcheck
-	}
-
 	// Parse the credentials file
 	credentials := make(map[string]string)
 
@@ -295,15 +290,15 @@ func SetKubeOneClusterDynamicDefaults(cluster *kubeoneapi.KubeOneCluster, creden
 
 	// Source cloud-config from the credentials file if it's present
 	if cc, ok := credentials["cloudConfig"]; ok {
-		if cluster.CloudProvider.CloudConfig != "" {
+		if cluster.CloudProvider.CloudConfig() != "" {
 			return fail.NewConfigError("dynamic cloud config", "found cloudConfig in credentials file, in addition to already set in the manifest")
 		}
 
-		cluster.CloudProvider.CloudConfig = cc
+		cluster.CloudProvider.SetCloudConfig(cc)
 	}
 	// Source csi-config from the credentials file if it's present
 	if cc, ok := credentials["csiConfig"]; ok {
-		cluster.CloudProvider.CSIConfig = cc
+		cluster.CloudProvider.SetCSIConfig(cc)
 	}
 
 	if ra, ok := credentials["registriesAuth"]; ok {
@@ -311,9 +306,6 @@ func SetKubeOneClusterDynamicDefaults(cluster *kubeoneapi.KubeOneCluster, creden
 			return err
 		}
 	}
-
-	// Default the AssetsConfiguration internal API
-	cluster.DefaultAssetConfiguration()
 
 	if cluster.ControlPlane.NodeSets != nil {
 		switch {
@@ -385,8 +377,8 @@ func setDefaultKubevirtControlPlane(clusterName string, kvCP *kubeoneapi.Kubevir
 // this function assigns a default cloud configuration.
 func SetDefaultsCloudConfig(obj *kubeoneapi.KubeOneCluster) {
 	if obj.CloudProvider.AWS != nil && obj.CloudProvider.External {
-		if obj.CloudProvider.CloudConfig == "" {
-			obj.CloudProvider.CloudConfig = defaultAWSCCMCloudConfig(obj.Name, obj.ClusterNetwork.IPFamily)
+		if obj.CloudProvider.AWS.CloudConfig == "" {
+			obj.CloudProvider.AWS.CloudConfig = defaultAWSCCMCloudConfig(obj.Name, obj.ClusterNetwork.IPFamily)
 		}
 	}
 }
@@ -500,7 +492,7 @@ func checkClusterConfiguration(cluster kubeoneapi.KubeOneCluster, logger logrus.
 		logger.Warnf("Nutanix support is planned to graduate to beta/stable in KubeOne 1.5+")
 	}
 
-	if cluster.CloudProvider.Vsphere != nil && !cluster.CloudProvider.External && len(cluster.CloudProvider.CSIConfig) > 0 {
+	if cluster.CloudProvider.Vsphere != nil && !cluster.CloudProvider.External && len(cluster.CloudProvider.CSIConfig()) > 0 {
 		logger.Warnf(".cloudProvider.csiConfig is provided, but is ignored when used with the in-tree cloud provider")
 	}
 

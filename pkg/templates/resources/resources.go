@@ -29,18 +29,15 @@ const (
 	AddonCCMAws                 = "ccm-aws"
 	AddonCCMAzure               = "ccm-azure"
 	AddonCCMDigitalOcean        = "ccm-digitalocean"
-	AddonCCMEquinixMetal        = "ccm-equinixmetal"
 	AddonCCMHetzner             = "ccm-hetzner"
 	AddonCCMKubeVirt            = "ccm-kubevirt"
 	AddonCCMGCP                 = "ccm-gcp"
 	AddonCCMNutanix             = "ccm-nutanix"
 	AddonCCMOpenStack           = "ccm-openstack"
-	AddonCCMPacket              = "ccm-packet" // TODO: Remove after deprecation period.
 	AddonCCMVsphere             = "ccm-vsphere"
 	AddonClusterAutoscaler      = "cluster-autoscaler"
 	AddonCNICanal               = "cni-canal"
 	AddonCNICilium              = "cni-cilium"
-	AddonCNIWeavenet            = "cni-weavenet"
 	AddonCoreDNSPDB             = "coredns-pdb"
 	AddonCSIExternalSnapshotter = "csi-external-snapshotter"
 	AddonCSIAwsEBS              = "csi-aws-ebs"
@@ -69,10 +66,8 @@ func CloudAddons() []string {
 		AddonCCMAzure,
 		AddonCCMGCP,
 		AddonCCMDigitalOcean,
-		AddonCCMEquinixMetal,
 		AddonCCMHetzner,
 		AddonCCMOpenStack,
-		AddonCCMPacket,
 		AddonCCMVsphere,
 		AddonCSIExternalSnapshotter,
 		AddonCSIAwsEBS,

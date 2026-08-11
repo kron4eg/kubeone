@@ -265,8 +265,6 @@ func (p CloudProviderSpec) CloudProviderName() string {
 		return "nutanix"
 	case p.Openstack != nil:
 		return "openstack"
-	case p.EquinixMetal != nil:
-		return "equinixmetal"
 	case p.Vsphere != nil:
 		return "vsphere"
 	case p.VMwareCloudDirector != nil:
@@ -276,6 +274,52 @@ func (p CloudProviderSpec) CloudProviderName() string {
 	}
 
 	return ""
+}
+
+// CloudConfig returns the active provider's cloud-config, if any.
+func (p CloudProviderSpec) CloudConfig() string {
+	switch {
+	case p.AWS != nil:
+		return p.AWS.CloudConfig
+	case p.Azure != nil:
+		return p.Azure.CloudConfig
+	case p.Openstack != nil:
+		return p.Openstack.CloudConfig
+	case p.Vsphere != nil:
+		return p.Vsphere.CloudConfig
+	}
+
+	return ""
+}
+
+// SetCloudConfig sets the cloud-config on the active provider, if it supports one.
+func (p *CloudProviderSpec) SetCloudConfig(cloudConfig string) {
+	switch {
+	case p.AWS != nil:
+		p.AWS.CloudConfig = cloudConfig
+	case p.Azure != nil:
+		p.Azure.CloudConfig = cloudConfig
+	case p.Openstack != nil:
+		p.Openstack.CloudConfig = cloudConfig
+	case p.Vsphere != nil:
+		p.Vsphere.CloudConfig = cloudConfig
+	}
+}
+
+// CSIConfig returns the active provider's csi-config, if any (only vSphere supports it).
+func (p CloudProviderSpec) CSIConfig() string {
+	if p.Vsphere != nil {
+		return p.Vsphere.CSIConfig
+	}
+
+	return ""
+}
+
+// SetCSIConfig sets the csi-config on the active provider, if it supports one (only vSphere).
+func (p *CloudProviderSpec) SetCSIConfig(csiConfig string) {
+	if p.Vsphere != nil {
+		p.Vsphere.CSIConfig = csiConfig
+	}
 }
 
 // MachineControllerCloudProvider returns name of the cloud provider for machine-controller
@@ -363,60 +407,6 @@ func (ads *Addons) RelativePath(manifestFilePath string) (string, error) {
 	}
 
 	return addonsPath, nil
-}
-
-// DefaultAssetConfiguration determines what image repository should be used
-// for Kubernetes and metrics-server images. The AssetsConfiguration has the
-// highest priority, then comes the RegistryConfiguration.
-// This function is needed because the AssetsConfiguration API has been removed
-// in the v1beta2 API, so we can't use defaulting
-func (c *KubeOneCluster) DefaultAssetConfiguration() {
-	// IMPORTANT: Please pay attention to this part when removing AssetConfiguration.
-	// We allow overriding CoreDNS image in v1beta2 API.
-	// Priorities:
-	//  - 1st: c.Features.CoreDNS.ImageRepository (only v1beta2 API)
-	//         c.AssetConfiguration.CoreDNS.ImageRepository (only v1beta1 API)
-	//  - 2nd: c.RegistryConfiguration.OverwriteRegistry (both APIs)
-	// NOTE: We want to allow configuring CoreDNS ImageRepository even if
-	// OverwriteRegistry is not used (to avoid confusion since CoreDNS.ImageRepository is
-	// decoupled from OverwriteRegistry)
-	if c.Features.CoreDNS != nil {
-		c.AssetConfiguration.CoreDNS.ImageRepository = defaults(
-			c.AssetConfiguration.CoreDNS.ImageRepository, // If we're using v1beta2, this is going to be empty anyways
-			c.Features.CoreDNS.ImageRepository,
-		)
-	}
-
-	if c.RegistryConfiguration == nil || c.RegistryConfiguration.OverwriteRegistry == "" {
-		// We default AssetConfiguration only if RegistryConfiguration.OverwriteRegistry
-		// is used
-		return
-	}
-
-	c.AssetConfiguration.Kubernetes.ImageRepository = defaults(
-		c.AssetConfiguration.Kubernetes.ImageRepository,
-		c.RegistryConfiguration.OverwriteRegistry,
-	)
-	c.AssetConfiguration.CoreDNS.ImageRepository = defaults(
-		c.AssetConfiguration.CoreDNS.ImageRepository,
-		c.RegistryConfiguration.OverwriteRegistry,
-	)
-	c.AssetConfiguration.Etcd.ImageRepository = defaults(
-		c.AssetConfiguration.Etcd.ImageRepository,
-		c.RegistryConfiguration.OverwriteRegistry,
-	)
-	c.AssetConfiguration.MetricsServer.ImageRepository = defaults(
-		c.AssetConfiguration.MetricsServer.ImageRepository,
-		c.RegistryConfiguration.OverwriteRegistry,
-	)
-}
-
-func defaults(input, defaultValue string) string {
-	if input != "" {
-		return input
-	}
-
-	return defaultValue
 }
 
 func MapStringStringToString(m1 map[string]string, pairSeparator string) string {

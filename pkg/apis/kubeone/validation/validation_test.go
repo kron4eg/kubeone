@@ -624,8 +624,7 @@ func TestValidateCloudProviderSpec(t *testing.T) {
 		{
 			name: "valid Azure provider config",
 			providerConfig: kubeoneapi.CloudProviderSpec{
-				Azure:       &kubeoneapi.AzureSpec{},
-				CloudConfig: "cloud-config",
+				Azure: &kubeoneapi.AzureSpec{CloudConfig: "cloud-config"},
 			},
 			expectedError: false,
 		},
@@ -676,15 +675,7 @@ func TestValidateCloudProviderSpec(t *testing.T) {
 		{
 			name: "valid OpenStack provider config",
 			providerConfig: kubeoneapi.CloudProviderSpec{
-				Openstack:   &kubeoneapi.OpenstackSpec{},
-				CloudConfig: "cloud-config",
-			},
-			expectedError: false,
-		},
-		{
-			name: "valid Equinix Metal provider config",
-			providerConfig: kubeoneapi.CloudProviderSpec{
-				EquinixMetal: &kubeoneapi.EquinixMetalSpec{},
+				Openstack: &kubeoneapi.OpenstackSpec{CloudConfig: "cloud-config"},
 			},
 			expectedError: false,
 		},
@@ -698,8 +689,7 @@ func TestValidateCloudProviderSpec(t *testing.T) {
 		{
 			name: "valid vSphere provider config",
 			providerConfig: kubeoneapi.CloudProviderSpec{
-				Vsphere:     &kubeoneapi.VsphereSpec{},
-				CloudConfig: "cloud-config",
+				Vsphere: &kubeoneapi.VsphereSpec{CloudConfig: "cloud-config"},
 			},
 			expectedError: false,
 		},
@@ -713,9 +703,8 @@ func TestValidateCloudProviderSpec(t *testing.T) {
 		{
 			name: "valid OpenStack provider config with external CCM and cloudConfig",
 			providerConfig: kubeoneapi.CloudProviderSpec{
-				AWS:         &kubeoneapi.AWSSpec{},
-				CloudConfig: "cloud-config",
-				External:    true,
+				AWS:      &kubeoneapi.AWSSpec{CloudConfig: "cloud-config"},
+				External: true,
 			},
 			expectedError: false,
 		},
@@ -764,14 +753,6 @@ func TestValidateCloudProviderSpec(t *testing.T) {
 			providerConfig: kubeoneapi.CloudProviderSpec{
 				AWS:       &kubeoneapi.AWSSpec{},
 				Openstack: &kubeoneapi.OpenstackSpec{},
-			},
-			expectedError: true,
-		},
-		{
-			name: "AWS and Equinix Metal specified at the same time",
-			providerConfig: kubeoneapi.CloudProviderSpec{
-				AWS:          &kubeoneapi.AWSSpec{},
-				EquinixMetal: &kubeoneapi.EquinixMetalSpec{},
 			},
 			expectedError: true,
 		},
@@ -832,77 +813,58 @@ func TestValidateCloudProviderSpec(t *testing.T) {
 		{
 			name: "vSphere provider config without csiConfig (external disabled)",
 			providerConfig: kubeoneapi.CloudProviderSpec{
-				Vsphere:     &kubeoneapi.VsphereSpec{},
-				CloudConfig: "test",
+				Vsphere: &kubeoneapi.VsphereSpec{CloudConfig: "test"},
 			},
 			expectedError: false,
 		},
 		{
 			name: "vSphere provider config without csiConfig (external enabled)",
 			providerConfig: kubeoneapi.CloudProviderSpec{
-				Vsphere:     &kubeoneapi.VsphereSpec{},
-				External:    true,
-				CloudConfig: "test",
+				Vsphere:  &kubeoneapi.VsphereSpec{CloudConfig: "test"},
+				External: true,
 			},
 			expectedError: true,
 		},
 		{
 			name: "vSphere provider config without csiConfig (external enabled & bundled CSI disabled)",
 			providerConfig: kubeoneapi.CloudProviderSpec{
-				Vsphere:                  &kubeoneapi.VsphereSpec{},
+				Vsphere:                  &kubeoneapi.VsphereSpec{CloudConfig: "test"},
 				External:                 true,
 				DisableBundledCSIDrivers: true,
-				CloudConfig:              "test",
 			},
 			expectedError: false,
 		},
 		{
-			name: "provider config with csiConfig CSI bundle disabled",
+			name: "vSphere provider config with csiConfig CSI bundle disabled",
 			providerConfig: kubeoneapi.CloudProviderSpec{
-				AWS:                      &kubeoneapi.AWSSpec{},
+				Vsphere:                  &kubeoneapi.VsphereSpec{CloudConfig: "test", CSIConfig: "dummy CSI config"},
 				External:                 true,
 				DisableBundledCSIDrivers: true,
-				CSIConfig:                "dummy CSI config",
-				CloudConfig:              "test",
 			},
 			expectedError: true,
 		},
 		{
 			name: "vSphere provider config with csiConfig",
 			providerConfig: kubeoneapi.CloudProviderSpec{
-				Vsphere:     &kubeoneapi.VsphereSpec{},
-				External:    true,
-				CloudConfig: "test",
-				CSIConfig:   "test",
+				Vsphere:  &kubeoneapi.VsphereSpec{CloudConfig: "test", CSIConfig: "test"},
+				External: true,
 			},
 			expectedError: false,
 		},
 		{
 			name: "vSphere provider config with csiConfig (external disabled)",
 			providerConfig: kubeoneapi.CloudProviderSpec{
-				Vsphere:     &kubeoneapi.VsphereSpec{},
-				External:    false,
-				CloudConfig: "test",
-				CSIConfig:   "test",
+				Vsphere:  &kubeoneapi.VsphereSpec{CloudConfig: "test", CSIConfig: "test"},
+				External: false,
 			},
 			expectedError: false,
 		},
 		{
 			name: "OpenStack provider config without csiConfig",
 			providerConfig: kubeoneapi.CloudProviderSpec{
-				Openstack:   &kubeoneapi.OpenstackSpec{},
-				CloudConfig: "test",
+				Openstack: &kubeoneapi.OpenstackSpec{CloudConfig: "test"},
 			},
 			expectedError: false,
-		},
-		{
-			name: "OpenStack provider config with csiConfig",
-			providerConfig: kubeoneapi.CloudProviderSpec{
-				Openstack:   &kubeoneapi.OpenstackSpec{},
-				CloudConfig: "test",
-				CSIConfig:   "test",
-			},
-			expectedError: true,
 		},
 		{
 			name:           "no provider specified",
@@ -1544,8 +1506,8 @@ func TestValidateClusterNetworkConfig(t *testing.T) {
 			clusterNetworkConfig: kubeoneapi.ClusterNetworkConfig{
 				IPFamily: kubeoneapi.IPFamilyIPv4,
 				CNI: &kubeoneapi.CNI{
-					Canal:    &kubeoneapi.CanalSpec{},
-					WeaveNet: &kubeoneapi.WeaveNetSpec{},
+					Canal:  &kubeoneapi.CanalSpec{},
+					Cilium: &kubeoneapi.CiliumSpec{},
 				},
 			},
 			provider: kubeoneapi.CloudProviderSpec{
@@ -1680,22 +1642,6 @@ func TestValidateCNIConfig(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name: "valid WeaveNet CNI config",
-			cniConfig: &kubeoneapi.CNI{
-				WeaveNet: &kubeoneapi.WeaveNetSpec{},
-			},
-			expectedError: false,
-		},
-		{
-			name: "valid WeaveNet CNI config with encryption enabled",
-			cniConfig: &kubeoneapi.CNI{
-				WeaveNet: &kubeoneapi.WeaveNetSpec{
-					Encrypted: true,
-				},
-			},
-			expectedError: false,
-		},
-		{
 			name: "valid External CNI config",
 			cniConfig: &kubeoneapi.CNI{
 				External: &kubeoneapi.ExternalCNISpec{},
@@ -1703,10 +1649,10 @@ func TestValidateCNIConfig(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name: "Canal and WeaveNet specified at the same time",
+			name: "Canal and Cilium specified at the same time",
 			cniConfig: &kubeoneapi.CNI{
-				Canal:    &kubeoneapi.CanalSpec{},
-				WeaveNet: &kubeoneapi.WeaveNetSpec{},
+				Canal:  &kubeoneapi.CanalSpec{},
+				Cilium: &kubeoneapi.CiliumSpec{},
 			},
 			expectedError: true,
 		},
@@ -1719,9 +1665,9 @@ func TestValidateCNIConfig(t *testing.T) {
 			expectedError: true,
 		},
 		{
-			name: "WeaveNet and External specified at the same time",
+			name: "Cilium and External specified at the same time",
 			cniConfig: &kubeoneapi.CNI{
-				WeaveNet: &kubeoneapi.WeaveNetSpec{},
+				Cilium:   &kubeoneapi.CiliumSpec{},
 				External: &kubeoneapi.ExternalCNISpec{},
 			},
 			expectedError: true,
@@ -2938,196 +2884,6 @@ func TestValidateRegistryConfiguration(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			errs := ValidateRegistryConfiguration(tc.registryConfiguration, nil)
-			if (len(errs) == 0) == tc.expectedError {
-				t.Log(errs[0])
-				t.Errorf("test case failed: expected %v, but got %v", tc.expectedError, (len(errs) != 0))
-			}
-		})
-	}
-}
-
-func TestValidateAssetConfiguration(t *testing.T) {
-	tests := []struct {
-		name               string
-		assetConfiguration *kubeoneapi.AssetConfiguration
-		expectedError      bool
-	}{
-		{
-			name:               "empty asset configuration",
-			assetConfiguration: &kubeoneapi.AssetConfiguration{},
-			expectedError:      false,
-		},
-		{
-			name: "kubernetes image configured",
-			assetConfiguration: &kubeoneapi.AssetConfiguration{
-				Kubernetes: kubeoneapi.ImageAsset{
-					ImageRepository: "127.0.0.1:5000",
-				},
-			},
-			expectedError: false,
-		},
-		{
-			name: "kubernetes image and tag configured",
-			assetConfiguration: &kubeoneapi.AssetConfiguration{
-				Kubernetes: kubeoneapi.ImageAsset{
-					ImageRepository: "127.0.0.1:5000",
-					ImageTag:        "test",
-				},
-			},
-			expectedError: true,
-		},
-		{
-			name: "kubernetes tag configured",
-			assetConfiguration: &kubeoneapi.AssetConfiguration{
-				Kubernetes: kubeoneapi.ImageAsset{
-					ImageTag: "test",
-				},
-			},
-			expectedError: true,
-		},
-		{
-			name: "pause image configured",
-			assetConfiguration: &kubeoneapi.AssetConfiguration{
-				Pause: kubeoneapi.ImageAsset{
-					ImageRepository: "127.0.0.1:5000",
-					ImageTag:        "3.2",
-				},
-			},
-			expectedError: false,
-		},
-		{
-			name: "pause image configured (repository missing)",
-			assetConfiguration: &kubeoneapi.AssetConfiguration{
-				Pause: kubeoneapi.ImageAsset{
-					ImageTag: "3.2",
-				},
-			},
-			expectedError: true,
-		},
-		{
-			name: "pause image configured (tag missing)",
-			assetConfiguration: &kubeoneapi.AssetConfiguration{
-				Pause: kubeoneapi.ImageAsset{
-					ImageRepository: "127.0.0.1:5000",
-				},
-			},
-			expectedError: true,
-		},
-		{
-			name: "coredns image and tag configured",
-			assetConfiguration: &kubeoneapi.AssetConfiguration{
-				CoreDNS: kubeoneapi.ImageAsset{
-					ImageRepository: "127.0.0.1:5000",
-					ImageTag:        "test",
-				},
-			},
-			expectedError: false,
-		},
-		{
-			name: "coredns image configured",
-			assetConfiguration: &kubeoneapi.AssetConfiguration{
-				CoreDNS: kubeoneapi.ImageAsset{
-					ImageRepository: "127.0.0.1:5000",
-				},
-			},
-			expectedError: false,
-		},
-		{
-			name: "coredns tag configured",
-			assetConfiguration: &kubeoneapi.AssetConfiguration{
-				CoreDNS: kubeoneapi.ImageAsset{
-					ImageTag: "test",
-				},
-			},
-			expectedError: false,
-		},
-		{
-			name: "etcd image and tag configured",
-			assetConfiguration: &kubeoneapi.AssetConfiguration{
-				Etcd: kubeoneapi.ImageAsset{
-					ImageRepository: "127.0.0.1:5000",
-					ImageTag:        "test",
-				},
-			},
-			expectedError: false,
-		},
-		{
-			name: "etcd image configured",
-			assetConfiguration: &kubeoneapi.AssetConfiguration{
-				Etcd: kubeoneapi.ImageAsset{
-					ImageRepository: "127.0.0.1:5000",
-				},
-			},
-			expectedError: false,
-		},
-		{
-			name: "etcd tag configured",
-			assetConfiguration: &kubeoneapi.AssetConfiguration{
-				Etcd: kubeoneapi.ImageAsset{
-					ImageTag: "test",
-				},
-			},
-			expectedError: false,
-		},
-		{
-			name: "metrics-server image and tag configured",
-			assetConfiguration: &kubeoneapi.AssetConfiguration{
-				MetricsServer: kubeoneapi.ImageAsset{
-					ImageRepository: "127.0.0.1:5000",
-					ImageTag:        "test",
-				},
-			},
-			expectedError: false,
-		},
-		{
-			name: "metrics-server image configured",
-			assetConfiguration: &kubeoneapi.AssetConfiguration{
-				MetricsServer: kubeoneapi.ImageAsset{
-					ImageRepository: "127.0.0.1:5000",
-				},
-			},
-			expectedError: false,
-		},
-		{
-			name: "metrics-server tag configured",
-			assetConfiguration: &kubeoneapi.AssetConfiguration{
-				MetricsServer: kubeoneapi.ImageAsset{
-					ImageTag: "test",
-				},
-			},
-			expectedError: false,
-		},
-		{
-			name: "cni, node binaries, and kubectl configured",
-			assetConfiguration: &kubeoneapi.AssetConfiguration{
-				CNI: kubeoneapi.BinaryAsset{
-					URL: "https://127.0.0.1/cni",
-				},
-				NodeBinaries: kubeoneapi.BinaryAsset{
-					URL: "https://127.0.0.1/kubernetes-node-linux-amd64.tar.gz",
-				},
-				Kubectl: kubeoneapi.BinaryAsset{
-					URL: "https://127.0.0.1/kubectl",
-				},
-			},
-			expectedError: false,
-		},
-		{
-			name: "binary assets configured (node binaries missing)",
-			assetConfiguration: &kubeoneapi.AssetConfiguration{
-				CNI: kubeoneapi.BinaryAsset{
-					URL: "https://127.0.0.1/cni",
-				},
-				Kubectl: kubeoneapi.BinaryAsset{
-					URL: "https://127.0.0.1/kubectl",
-				},
-			},
-			expectedError: true,
-		},
-	}
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			errs := ValidateAssetConfiguration(tc.assetConfiguration, nil)
 			if (len(errs) == 0) == tc.expectedError {
 				t.Log(errs[0])
 				t.Errorf("test case failed: expected %v, but got %v", tc.expectedError, (len(errs) != 0))

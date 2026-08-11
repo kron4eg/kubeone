@@ -116,13 +116,13 @@ func Ensure(s *state.State) error {
 		return err
 	}
 
-	if s.Cluster.CloudProvider.CloudConfig != "" {
-		cloudConfig, err := renderCloudConfig(s.Cluster.CloudProvider.CloudConfig, ccmCreds)
+	if s.Cluster.CloudProvider.CloudConfig() != "" {
+		cloudConfig, err := renderCloudConfig(s.Cluster.CloudProvider.CloudConfig(), ccmCreds)
 		if err != nil {
 			return err
 		}
 
-		s.Cluster.CloudProvider.CloudConfig = cloudConfig
+		s.Cluster.CloudProvider.SetCloudConfig(cloudConfig)
 
 		cloudCfgSecret := cloudConfigSecret(cloudConfig)
 		if err := clientutil.CreateOrReplace(s.Context, s.DynamicClient, cloudCfgSecret); err != nil {

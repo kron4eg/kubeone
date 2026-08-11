@@ -227,8 +227,8 @@ func ValidateCloudProviderSpec(cluster kubeoneapi.KubeOneCluster, fldPath *field
 
 	providerFound := false
 	if providerSpec.AWS != nil {
-		if networkConfig.IPFamily.IsDualstack() && providerSpec.External && len(providerSpec.CloudConfig) == 0 {
-			allErrs = append(allErrs, field.Required(fldPath.Child("cloudConfig"), "cloudConfig is required for dualstack clusters for aws provider"))
+		if networkConfig.IPFamily.IsDualstack() && providerSpec.External && len(providerSpec.AWS.CloudConfig) == 0 {
+			allErrs = append(allErrs, field.Required(fldPath.Child("aws", "cloudConfig"), "cloudConfig is required for dualstack clusters for aws provider"))
 		}
 		providerFound = true
 	}
@@ -236,8 +236,8 @@ func ValidateCloudProviderSpec(cluster kubeoneapi.KubeOneCluster, fldPath *field
 		if providerFound {
 			allErrs = append(allErrs, field.Forbidden(fldPath.Child("azure"), "only one provider can be used at the same time"))
 		}
-		if len(providerSpec.CloudConfig) == 0 {
-			allErrs = append(allErrs, field.Required(fldPath.Child("cloudConfig"), ".cloudProvider.cloudConfig is required for azure provider"))
+		if len(providerSpec.Azure.CloudConfig) == 0 {
+			allErrs = append(allErrs, field.Required(fldPath.Child("azure", "cloudConfig"), ".cloudProvider.azure.cloudConfig is required for azure provider"))
 		}
 		providerFound = true
 	}
@@ -288,17 +288,11 @@ func ValidateCloudProviderSpec(cluster kubeoneapi.KubeOneCluster, fldPath *field
 		if providerFound {
 			allErrs = append(allErrs, field.Forbidden(openstackFld, "only one provider can be used at the same time"))
 		}
-		if len(providerSpec.CloudConfig) == 0 {
-			allErrs = append(allErrs, field.Required(fldPath.Child("cloudConfig"), ".cloudProvider.cloudConfig is required for openstack provider"))
+		if len(providerSpec.Openstack.CloudConfig) == 0 {
+			allErrs = append(allErrs, field.Required(openstackFld.Child("cloudConfig"), ".cloudProvider.openstack.cloudConfig is required for openstack provider"))
 		}
 		providerFound = true
 		allErrs = append(allErrs, validateOpenstackSpec(providerSpec.Openstack, openstackFld)...)
-	}
-	if providerSpec.EquinixMetal != nil {
-		if providerFound {
-			allErrs = append(allErrs, field.Forbidden(fldPath.Child("equinixmetal"), "only one provider can be used at the same time"))
-		}
-		providerFound = true
 	}
 	if providerSpec.VMwareCloudDirector != nil {
 		if providerFound {
@@ -310,14 +304,18 @@ func ValidateCloudProviderSpec(cluster kubeoneapi.KubeOneCluster, fldPath *field
 		}
 	}
 	if providerSpec.Vsphere != nil {
+		vsphereFld := fldPath.Child("vsphere")
 		if providerFound {
-			allErrs = append(allErrs, field.Forbidden(fldPath.Child("vsphere"), "only one provider can be used at the same time"))
+			allErrs = append(allErrs, field.Forbidden(vsphereFld, "only one provider can be used at the same time"))
 		}
-		if len(providerSpec.CloudConfig) == 0 {
-			allErrs = append(allErrs, field.Required(fldPath.Child("cloudConfig"), ".cloudProvider.cloudConfig is required for vSphere provider"))
+		if len(providerSpec.Vsphere.CloudConfig) == 0 {
+			allErrs = append(allErrs, field.Required(vsphereFld.Child("cloudConfig"), ".cloudProvider.vsphere.cloudConfig is required for vSphere provider"))
 		}
-		if providerSpec.External && !providerSpec.DisableBundledCSIDrivers && len(providerSpec.CSIConfig) == 0 {
-			allErrs = append(allErrs, field.Required(fldPath.Child("csiConfig"), ".cloudProvider.csiConfig is required for vSphere provider"))
+		if providerSpec.External && !providerSpec.DisableBundledCSIDrivers && len(providerSpec.Vsphere.CSIConfig) == 0 {
+			allErrs = append(allErrs, field.Required(vsphereFld.Child("csiConfig"), ".cloudProvider.vsphere.csiConfig is required for vSphere provider"))
+		}
+		if providerSpec.DisableBundledCSIDrivers && len(providerSpec.Vsphere.CSIConfig) > 0 {
+			allErrs = append(allErrs, field.Forbidden(vsphereFld.Child("csiConfig"), ".cloudProvider.vsphere.csiConfig is mutually exclusive with .cloudProvider.disableBundledCSIDrivers"))
 		}
 		providerFound = true
 	}
@@ -336,14 +334,6 @@ func ValidateCloudProviderSpec(cluster kubeoneapi.KubeOneCluster, fldPath *field
 
 	if !providerFound {
 		allErrs = append(allErrs, field.Invalid(fldPath, "", "provider must be specified"))
-	}
-
-	if providerSpec.DisableBundledCSIDrivers && len(providerSpec.CSIConfig) > 0 {
-		allErrs = append(allErrs, field.Forbidden(fldPath.Child("csiConfig"), ".cloudProvider.csiConfig is mutually exclusive with .cloudProvider.disableBundledCSIDrivers"))
-	}
-
-	if providerSpec.Vsphere == nil && len(providerSpec.CSIConfig) > 0 {
-		allErrs = append(allErrs, field.Forbidden(fldPath.Child("csiConfig"), ".cloudProvider.csiConfig is currently supported only for vsphere clusters"))
 	}
 
 	return allErrs
@@ -646,12 +636,6 @@ func ValidateCNI(c *kubeoneapi.CNI, fldPath *field.Path) field.ErrorList {
 	if c.Cilium != nil {
 		if cniFound {
 			allErrs = append(allErrs, field.Forbidden(fldPath.Child("cilium"), "only one cni plugin can be used at the same time"))
-		}
-		cniFound = true
-	}
-	if c.WeaveNet != nil {
-		if cniFound {
-			allErrs = append(allErrs, field.Forbidden(fldPath.Child("weaveNet"), "only one cni plugin can be used at the same time"))
 		}
 		cniFound = true
 	}
@@ -1055,37 +1039,6 @@ func ValidateEtcdConfig(etcdConf *kubeoneapi.EtcdConfig, fldPath *field.Path, al
 	case "":
 	default:
 		allErrs = append(allErrs, field.Invalid(etcdFldPath.Child("autoCompactionMode"), etcdConf.AutoCompactionMode, "invalid autoCompactionMode"))
-	}
-
-	return allErrs
-}
-
-func ValidateAssetConfiguration(a *kubeoneapi.AssetConfiguration, fldPath *field.Path) field.ErrorList {
-	allErrs := field.ErrorList{}
-
-	if a.Kubernetes.ImageTag != "" {
-		allErrs = append(allErrs, field.Forbidden(fldPath.Child("imageTag"), "imageTag is forbidden for Kubernetes images"))
-	}
-
-	if a.Pause.ImageRepository != "" && a.Pause.ImageTag == "" {
-		allErrs = append(allErrs, field.Required(fldPath.Child("imageTag"), "imageTag for sandbox (pause) image is required"))
-	}
-	if a.Pause.ImageRepository == "" && a.Pause.ImageTag != "" {
-		allErrs = append(allErrs, field.Required(fldPath.Child("imageRepository"), "imageRepository for sandbox (pause) image is required"))
-	}
-
-	found := 0
-	if a.CNI.URL != "" {
-		found++
-	}
-	if a.NodeBinaries.URL != "" {
-		found++
-	}
-	if a.Kubectl.URL != "" {
-		found++
-	}
-	if found != 0 && found != 3 {
-		allErrs = append(allErrs, field.Invalid(fldPath, "", "all binary assets must be specified (cni, nodeBinaries, kubectl)"))
 	}
 
 	return allErrs
