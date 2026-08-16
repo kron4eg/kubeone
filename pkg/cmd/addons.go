@@ -31,6 +31,7 @@ func addonsCmd(rootFlags *pflag.FlagSet) *cobra.Command {
 
 	cmd.AddCommand(
 		addonsListCmd(rootFlags),
+		addonsChartCmd(rootFlags),
 	)
 
 	return cmd

@@ -1,0 +1,530 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: csi-do-controller-sa
+  namespace: kube-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: csi-do-node-sa
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: csi-do-node-driver-registrar-role
+  namespace: kube-system
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: csi-do-attacher-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumes
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - storage.k8s.io
+  resources:
+  - csinodes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - storage.k8s.io
+  resources:
+  - volumeattachments
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+- apiGroups:
+  - storage.k8s.io
+  resources:
+  - volumeattachments/status
+  verbs:
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: csi-do-provisioner-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumes
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumeclaims
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+- apiGroups:
+  - storage.k8s.io
+  resources:
+  - storageclasses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - list
+  - watch
+  - create
+  - update
+  - patch
+- apiGroups:
+  - snapshot.storage.k8s.io
+  resources:
+  - volumesnapshots
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - snapshot.storage.k8s.io
+  resources:
+  - volumesnapshotcontents
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - storage.k8s.io
+  resources:
+  - csinodes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - storage.k8s.io
+  resources:
+  - volumeattachments
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: csi-do-resizer-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumes
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumeclaims
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumeclaims/status
+  verbs:
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - list
+  - watch
+  - create
+  - update
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: csi-do-snapshotter-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - list
+  - watch
+  - create
+  - update
+  - patch
+- apiGroups:
+  - snapshot.storage.k8s.io
+  resources:
+  - volumesnapshotclasses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - snapshot.storage.k8s.io
+  resources:
+  - volumesnapshotcontents
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+- apiGroups:
+  - snapshot.storage.k8s.io
+  resources:
+  - volumesnapshotcontents/status
+  verbs:
+  - update
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: csi-do-attacher-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: csi-do-attacher-role
+subjects:
+- kind: ServiceAccount
+  name: csi-do-controller-sa
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: csi-do-node-driver-registrar-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: csi-do-node-driver-registrar-role
+subjects:
+- kind: ServiceAccount
+  name: csi-do-node-sa
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: csi-do-provisioner-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: csi-do-provisioner-role
+subjects:
+- kind: ServiceAccount
+  name: csi-do-controller-sa
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: csi-do-resizer-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: csi-do-resizer-role
+subjects:
+- kind: ServiceAccount
+  name: csi-do-controller-sa
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: csi-do-snapshotter-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: csi-do-snapshotter-role
+subjects:
+- kind: ServiceAccount
+  name: csi-do-controller-sa
+  namespace: kube-system
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: csi-do-controller
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: csi-do-controller
+  serviceName: csi-do
+  template:
+    metadata:
+      annotations:
+        kubeone.k8c.io/credentials-hash: '{{.Values.credentialsCCMHash}}'
+      labels:
+        app: csi-do-controller
+        role: csi-do
+    spec:
+      containers:
+      - args:
+        - --csi-address=$(ADDRESS)
+        - --default-fstype=ext4
+        - --v=5
+        env:
+        - name: ADDRESS
+          value: /var/lib/csi/sockets/pluginproxy/csi.sock
+        image: '{{getImage "DigitalOceanCSIProvisioner"}}'
+        imagePullPolicy: IfNotPresent
+        name: csi-provisioner
+        volumeMounts:
+        - mountPath: /var/lib/csi/sockets/pluginproxy/
+          name: socket-dir
+      - args:
+        - --csi-address=$(ADDRESS)
+        - --v=5
+        - --reconcile-sync=30m
+        - --timeout=2m
+        env:
+        - name: ADDRESS
+          value: /var/lib/csi/sockets/pluginproxy/csi.sock
+        image: '{{getImage "DigitalOceanCSIAttacher"}}'
+        imagePullPolicy: IfNotPresent
+        name: csi-attacher
+        volumeMounts:
+        - mountPath: /var/lib/csi/sockets/pluginproxy/
+          name: socket-dir
+      - args:
+        - --csi-address=$(ADDRESS)
+        - --v=5
+        env:
+        - name: ADDRESS
+          value: /var/lib/csi/sockets/pluginproxy/csi.sock
+        image: '{{getImage "DigitalOceanCSISnapshotter"}}'
+        imagePullPolicy: IfNotPresent
+        name: csi-snapshotter
+        volumeMounts:
+        - mountPath: /var/lib/csi/sockets/pluginproxy/
+          name: socket-dir
+      - args:
+        - --csi-address=$(ADDRESS)
+        - --timeout=30s
+        - --v=5
+        - --handle-volume-inuse-error=false
+        env:
+        - name: ADDRESS
+          value: /var/lib/csi/sockets/pluginproxy/csi.sock
+        image: '{{getImage "DigitalOceanCSIResizer"}}'
+        imagePullPolicy: IfNotPresent
+        name: csi-resizer
+        volumeMounts:
+        - mountPath: /var/lib/csi/sockets/pluginproxy/
+          name: socket-dir
+      - args:
+        - --endpoint=$(CSI_ENDPOINT)
+        - --token=$(DIGITALOCEAN_ACCESS_TOKEN)
+        - --url=$(DIGITALOCEAN_API_URL)
+        - --default-volumes-page-size=200
+        env:
+        - name: CSI_ENDPOINT
+          value: unix:///var/lib/csi/sockets/pluginproxy/csi.sock
+        - name: DIGITALOCEAN_API_URL
+          value: https://api.digitalocean.com/
+        - name: DIGITALOCEAN_ACCESS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: DO_TOKEN
+              name: kubeone-ccm-credentials
+        image: '{{getImage "DigitalOceanCSI"}}'
+        imagePullPolicy: Always
+        name: csi-do-plugin
+        volumeMounts:
+        - mountPath: /var/lib/csi/sockets/pluginproxy/
+          name: socket-dir
+      nodeSelector:
+        kubernetes.io/os: linux
+        node-role.kubernetes.io/control-plane: ""
+      priorityClassName: system-cluster-critical
+      serviceAccount: csi-do-controller-sa
+      tolerations:
+      - key: CriticalAddonsOnly
+        operator: Exists
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+        operator: Exists
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
+        operator: Exists
+      volumes:
+      - emptyDir: {}
+        name: socket-dir
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: csi-do-node
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      app: csi-do-node
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: csi-do-plugin
+      labels:
+        app: csi-do-node
+        role: csi-do
+    spec:
+      containers:
+      - args:
+        - --v=5
+        - --csi-address=$(ADDRESS)
+        - --kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)
+        env:
+        - name: ADDRESS
+          value: /csi/csi.sock
+        - name: DRIVER_REG_SOCK_PATH
+          value: /var/lib/kubelet/plugins/dobs.csi.digitalocean.com/csi.sock
+        - name: KUBE_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        image: '{{getImage "DigitalOceanCSINodeDriverRegistar"}}'
+        name: csi-node-driver-registrar
+        volumeMounts:
+        - mountPath: /csi/
+          name: plugin-dir
+        - mountPath: /registration/
+          name: registration-dir
+      - args:
+        - --endpoint=$(CSI_ENDPOINT)
+        - --url=$(DIGITALOCEAN_API_URL)
+        env:
+        - name: CSI_ENDPOINT
+          value: unix:///csi/csi.sock
+        - name: DIGITALOCEAN_API_URL
+          value: https://api.digitalocean.com/
+        image: '{{getImage "DigitalOceanCSI"}}'
+        imagePullPolicy: Always
+        name: csi-do-plugin
+        securityContext:
+          allowPrivilegeEscalation: true
+          capabilities:
+            add:
+            - SYS_ADMIN
+          privileged: true
+        volumeMounts:
+        - mountPath: /csi
+          name: plugin-dir
+        - mountPath: /var/lib/kubelet
+          mountPropagation: Bidirectional
+          name: pods-mount-dir
+        - mountPath: /dev
+          name: device-dir
+      hostNetwork: true
+      initContainers:
+      - args:
+        - rm
+        - -f
+        - /etc/udev/rules.d/99-digitalocean-automount.rules
+        image: '{{getImage "DigitalOceanCSIAlpine"}}'
+        name: automount-udev-deleter
+        volumeMounts:
+        - mountPath: /etc/udev/rules.d/
+          name: udev-rules-dir
+      priorityClassName: system-node-critical
+      serviceAccount: csi-do-node-sa
+      tolerations:
+      - key: CriticalAddonsOnly
+        operator: Exists
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+        operator: Exists
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
+        operator: Exists
+      volumes:
+      - hostPath:
+          path: /var/lib/kubelet/plugins_registry/
+          type: DirectoryOrCreate
+        name: registration-dir
+      - hostPath:
+          path: /var/lib/kubelet/plugins/dobs.csi.digitalocean.com
+          type: DirectoryOrCreate
+        name: plugin-dir
+      - hostPath:
+          path: /var/lib/kubelet
+          type: Directory
+        name: pods-mount-dir
+      - hostPath:
+          path: /dev
+        name: device-dir
+      - hostPath:
+          path: /etc/udev/rules.d/
+        name: udev-rules-dir
+---
+apiVersion: storage.k8s.io/v1
+kind: CSIDriver
+metadata:
+  name: dobs.csi.digitalocean.com
+spec:
+  attachRequired: true
+  podInfoOnMount: true

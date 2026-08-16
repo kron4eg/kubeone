@@ -1,0 +1,232 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/instance: openstack-ccm
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: openstack-cloud-controller-manager
+    app.kubernetes.io/version: v1.34.1
+    helm.sh/chart: openstack-cloud-controller-manager-2.34.1
+  name: cloud-controller-manager
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/instance: openstack-ccm
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: openstack-cloud-controller-manager
+    app.kubernetes.io/version: v1.34.1
+    helm.sh/chart: openstack-cloud-controller-manager-2.34.1
+  name: system:cloud-controller-manager
+rules:
+  - apiGroups:
+      - coordination.k8s.io
+    resources:
+      - leases
+    verbs:
+      - get
+      - create
+      - update
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+      - update
+  - apiGroups:
+      - ""
+    resources:
+      - nodes
+    verbs:
+      - '*'
+  - apiGroups:
+      - ""
+    resources:
+      - nodes/status
+    verbs:
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - services
+    verbs:
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - services/status
+    verbs:
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - serviceaccounts/token
+    verbs:
+      - create
+  - apiGroups:
+      - ""
+    resources:
+      - serviceaccounts
+    verbs:
+      - create
+      - get
+  - apiGroups:
+      - ""
+    resources:
+      - persistentvolumes
+    verbs:
+      - '*'
+  - apiGroups:
+      - ""
+    resources:
+      - endpoints
+    verbs:
+      - create
+      - get
+      - list
+      - watch
+      - update
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - list
+      - get
+      - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/instance: openstack-ccm
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: openstack-cloud-controller-manager
+    app.kubernetes.io/version: v1.34.1
+    helm.sh/chart: openstack-cloud-controller-manager-2.34.1
+  name: system:cloud-controller-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:cloud-controller-manager
+subjects:
+  - kind: ServiceAccount
+    name: cloud-controller-manager
+    namespace: kube-system
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app.kubernetes.io/instance: openstack-ccm
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: openstack-cloud-controller-manager
+    app.kubernetes.io/version: v1.34.1
+    helm.sh/chart: openstack-cloud-controller-manager-2.34.1
+  name: openstack-cloud-controller-manager
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      app: openstack-cloud-controller-manager
+      component: controllermanager
+      release: openstack-ccm
+  template:
+    metadata:
+      annotations:
+        kubeone.k8c.io/cabundle-hash: '{{CABundle | sha256sum}}'
+        kubeone.k8c.io/cloudconfig-hash: '{{.Values.config.CloudProvider.CloudConfig | sha256sum}}'
+      labels:
+        app: openstack-cloud-controller-manager
+        chart: openstack-cloud-controller-manager-2.34.1
+        component: controllermanager
+        heritage: Helm
+        k8s-app: openstack-cloud-controller-manager
+        release: openstack-ccm
+    spec:
+      containers:
+        - args:
+            - /bin/openstack-cloud-controller-manager
+            - --v=1
+            - --cloud-config=$(CLOUD_CONFIG)
+            - --cluster-name=$(CLUSTER_NAME)
+            - --cloud-provider=openstack
+            - --use-service-account-credentials=false
+            - --controllers=cloud-node,cloud-node-lifecycle,route,service
+            - --bind-address=127.0.0.1
+          env:
+            - name: CLOUD_CONFIG
+              value: /etc/config/cloud-config
+            - name: CLUSTER_NAME
+              value: '{{default "kubernetes" .Values.ccmClusterName}}'
+          image: '{{getImage "OpenstackCCM"}}'
+          name: openstack-cloud-controller-manager
+          volumeMounts:
+            - mountPath: /etc/config
+              name: cloud-config-volume
+              readOnly: true
+            - mountPath: /etc/kubernetes/pki
+              name: k8s-certs
+              readOnly: true
+            - mountPath: /etc/ssl/certs
+              name: ca-certs
+              readOnly: true
+            - mountPath: /etc/pki
+              name: pki-certs
+              readOnly: true
+            - mountPath: /usr/share/ca-certificates
+              name: usr-ca-certs
+              readOnly: true
+      dnsPolicy: ClusterFirst
+      hostNetwork: true
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+      priorityClassName: system-cluster-critical
+      securityContext:
+        runAsUser: 1001
+      serviceAccountName: cloud-controller-manager
+      tolerations:
+        - effect: NoSchedule
+          key: node.cloudprovider.kubernetes.io/uninitialized
+          value: "true"
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/control-plane
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+      volumes:
+        - name: cloud-config-volume
+          secret:
+            secretName: cloud-config
+        - hostPath:
+            path: /etc/kubernetes/pki
+            type: DirectoryOrCreate
+          name: k8s-certs
+        - hostPath:
+            path: /etc/ssl/certs
+            type: DirectoryOrCreate
+          name: ca-certs
+        - hostPath:
+            path: /etc/pki
+            type: DirectoryOrCreate
+          name: pki-certs
+        - hostPath:
+            path: /usr/share/ca-certificates
+            type: DirectoryOrCreate
+          name: usr-ca-certs
+  updateStrategy:
+    type: RollingUpdate

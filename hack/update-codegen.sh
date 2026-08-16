@@ -38,5 +38,8 @@ kube::codegen::gen_helpers \
     --boilerplate "${SCRIPT_ROOT}/hack/boilerplate/boilerplate.go.txt" \
     "${SCRIPT_ROOT}/pkg/apis/kubeone"
 
+echodate "Generating addon charts..."
+go run ./hack/gen-addon-charts
+
 echodate "Generating Go code..."
 make gogenerate

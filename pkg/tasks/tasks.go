@@ -299,12 +299,19 @@ func WithResources(t Tasks) Tasks {
 				Fn:          addons.Ensure,
 				Operation:   "applying addons",
 				Description: "ensure embedded addons",
+				Predicate:   func(*state.State) bool { return !localhelm.AddonsViaHelm() },
 			},
 			{
 				Fn:          addons.EnsureUserAddons,
 				Operation:   "applying addons",
 				Description: "ensure custom addons",
-				Predicate:   func(s *state.State) bool { return s.Cluster.Addons != nil },
+				Predicate:   func(s *state.State) bool { return s.Cluster.Addons != nil && !localhelm.AddonsViaHelm() },
+			},
+			{
+				Fn:          localhelm.DeployAddons,
+				Operation:   "releasing addons as helm charts",
+				Description: "ensure addons as helm releases",
+				Predicate:   func(*state.State) bool { return localhelm.AddonsViaHelm() },
 			},
 			{
 				Fn:        localhelm.Deploy,
@@ -467,6 +474,13 @@ func WithContainerDMigration(t Tasks) Tasks {
 				Fn:          addons.Ensure,
 				Operation:   "applying addons",
 				Description: "ensure embedded addons",
+				Predicate:   func(*state.State) bool { return !localhelm.AddonsViaHelm() },
+			},
+			{
+				Fn:          localhelm.DeployAddons,
+				Operation:   "releasing addons as helm charts",
+				Description: "ensure addons as helm releases",
+				Predicate:   func(*state.State) bool { return localhelm.AddonsViaHelm() },
 			},
 			{
 				Fn: func(s *state.State) error {

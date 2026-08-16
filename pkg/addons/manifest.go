@@ -19,21 +19,16 @@ package addons
 import (
 	"bufio"
 	"bytes"
-	"encoding/json"
-	"fmt"
 	"io"
 	"io/fs"
-	"maps"
-	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
 
-	"github.com/BurntSushi/toml"
-	"github.com/Masterminds/sprig/v3"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
+	"k8c.io/kubeone/pkg/addons/helmchart"
 	kubeoneapi "k8c.io/kubeone/pkg/apis/kubeone"
 	"k8c.io/kubeone/pkg/certificate/cabundle"
 	"k8c.io/kubeone/pkg/fail"
@@ -190,7 +185,7 @@ func (a *applier) loadAddonsManifests(
 			overwriteRegistry := k1cluster.RegistryConfiguration.ImageRegistry("")
 
 			tpl, err := template.New("addons-base").
-				Funcs(txtFuncMap(overwriteRegistry)).
+				Funcs(helmchart.TxtFuncMap(overwriteRegistry)).
 				Funcs(template.FuncMap{
 					"CABundle": func() string {
 						return k1cluster.CertificateAuthority.Bundle
@@ -202,28 +197,10 @@ func (a *applier) loadAddonsManifests(
 			}
 
 			// Make a copy and merge Params
-			tplDataParams := map[string]string{}
-			maps.Copy(tplDataParams, a.TemplateData.Params)
-			maps.Copy(tplDataParams, addonParams)
-
-			defaultAddonParams(k1cluster, addonName, tplDataParams)
-
-			// Resolve environment variables in Params
-			for k, v := range tplDataParams {
-				if envName, ok := strings.CutPrefix(v, ParamsEnvPrefix); ok {
-					if env, ok := os.LookupEnv(envName); ok {
-						tplDataParams[k] = env
-					} else {
-						return nil, fail.RuntimeError{
-							Op:  "resolving template data environment variables",
-							Err: fmt.Errorf("%q not found", envName),
-						}
-					}
-				}
+			tplData, err := a.addonTemplateData(k1cluster, addonName, addonParams)
+			if err != nil {
+				return nil, err
 			}
-
-			tplData := a.TemplateData
-			tplData.Params = tplDataParams
 
 			manifest = bytes.NewBuffer([]byte{})
 			if err := tpl.Execute(manifest, tplData); err != nil {
@@ -340,99 +317,6 @@ func combineManifests(manifests []*bytes.Buffer, disablingTemplating bool) *byte
 	}
 
 	return bytes.NewBufferString(strings.Join(parts, "\n---\n") + "\n")
-}
-
-type vsphereCSIWebhookConfig struct {
-	Port     string `toml:"port"`
-	CertFile string `toml:"cert-file"`
-	KeyFile  string `toml:"key-file"`
-}
-
-type vsphereCSIWebhookConfigWrapper struct {
-	WebHookConfig vsphereCSIWebhookConfig `toml:"WebHookConfig"`
-}
-
-func txtFuncMap(overwriteRegistry string) template.FuncMap {
-	funcs := sprig.TxtFuncMap()
-
-	funcs["Registry"] = func(registry string) string {
-		if overwriteRegistry != "" {
-			return overwriteRegistry
-		}
-
-		return registry
-	}
-
-	funcs["required"] = requiredTemplateFunc
-	funcs["caBundleEnvVar"] = caBundleEnvVarTemplateFunc
-	funcs["caBundleVolume"] = caBundleVolumeTemplateFunc
-	funcs["caBundleVolumeMount"] = caBundleVolumeMountTemplateFunc
-	funcs["EquinixMetalSecret"] = equinixMetalSecretTemplateFunc
-	funcs["vSphereCSIWebhookConfig"] = vSphereCSIWebhookConfigTemplateFunc
-
-	return funcs
-}
-
-func requiredTemplateFunc(warn string, input any) (any, error) {
-	switch val := input.(type) {
-	case nil:
-		return val, errors.New(warn)
-	case string:
-		if val == "" {
-			return val, errors.New(warn)
-		}
-	}
-
-	return input, nil
-}
-
-func caBundleEnvVarTemplateFunc() (string, error) {
-	buf, err := yaml.Marshal([]corev1.EnvVar{cabundle.EnvVar()})
-
-	return string(buf), err
-}
-
-func caBundleVolumeTemplateFunc() (string, error) {
-	buf, err := yaml.Marshal([]corev1.Volume{cabundle.Volume()})
-
-	return string(buf), err
-}
-
-func caBundleVolumeMountTemplateFunc() (string, error) {
-	buf, err := yaml.Marshal([]corev1.VolumeMount{cabundle.VolumeMount()})
-
-	return string(buf), err
-}
-
-func equinixMetalSecretTemplateFunc(apiKey, projectID string) (string, error) {
-	equinixMetalSecret := struct {
-		APIKey    string `json:"apiKey"`
-		ProjectID string `json:"projectID"`
-	}{
-		APIKey:    apiKey,
-		ProjectID: projectID,
-	}
-
-	buf, err := json.Marshal(equinixMetalSecret)
-
-	return string(buf), err
-}
-
-func vSphereCSIWebhookConfigTemplateFunc() (string, error) {
-	cfg := vsphereCSIWebhookConfigWrapper{
-		WebHookConfig: vsphereCSIWebhookConfig{
-			Port:     "8443",
-			CertFile: "/run/secrets/tls/cert.pem",
-			KeyFile:  "/run/secrets/tls/key.pem",
-		},
-	}
-
-	var buf strings.Builder
-	enc := toml.NewEncoder(&buf)
-	enc.Indent = ""
-	err := enc.Encode(cfg)
-
-	return buf.String(), err
 }
 
 func mutatePodTemplateSpec(docs []runtime.RawExtension, mutatorFn func(podTpl *corev1.PodTemplateSpec)) error {

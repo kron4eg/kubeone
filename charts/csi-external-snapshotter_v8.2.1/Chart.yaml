@@ -1,0 +1,4 @@
+apiVersion: v2
+name: csi-external-snapshotter_v8.2.1
+type: application
+version: 0.1.0

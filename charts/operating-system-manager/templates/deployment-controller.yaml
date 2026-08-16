@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: operating-system-manager
+  namespace: kube-system
+  labels:
+    app: operating-system-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: operating-system-manager
+  template:
+    metadata:
+      annotations:
+        "prometheus.io/scrape": "true"
+        "prometheus.io/port": "8080"
+        "prometheus.io/path": "/metrics"
+        "kubeone.k8c.io/cabundle-hash": "{{CABundle | sha256sum}}"
+        "kubeone.k8c.io/credentials-hash": "{{.Values.operatingSystemManagerCredentialsHash}}"
+      labels:
+        app: operating-system-manager
+    spec:
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+      tolerations:
+        - key: "node-role.kubernetes.io/master"
+          operator: Exists
+          effect: NoSchedule
+        - key: "node.cloudprovider.kubernetes.io/uninitialized"
+          value: "true"
+          effect: NoSchedule
+        - key: "CriticalAddonsOnly"
+          operator: Exists
+        - key: "node-role.kubernetes.io/control-plane"
+          effect: NoSchedule
+      serviceAccountName: operating-system-manager
+      containers:
+        - name: operating-system-manager
+          image: "{{getImage "OperatingSystemManager"}}"
+          imagePullPolicy: IfNotPresent
+          command:
+            - /usr/local/bin/osm-controller
+          args:
+            - -log-debug=false
+            - -log-format=json # json or console
+            - -health-probe-address=0.0.0.0:8085
+            - -metrics-address=0.0.0.0:8080
+            {{if .Values.config.Features.NodeLocalDNS.Deploy}}- -cluster-dns={{.Values.resources.NodeLocalDNSVirtualIP}}
+            {{end}}- -namespace=kube-system
+            - -container-runtime={{.Values.config.ContainerRuntime}}
+            - -pause-image={{getImage "PauseImage"}}
+            {{if .Values.config.CloudProvider.External}}
+            - -external-cloud-provider
+            {{end}}
+            {{if CABundle}}- -host-ca-bundle={{.Values.resources.CABundleSSLCertFilePath}}
+            {{end}}{{range .Values.config.ContainerRuntime.MachineControllerFlags}}- {{.}}
+            {{end}}{{with .Values.config.RegistryConfiguration.InsecureRegistryAddress}}- -node-insecure-registries={{.}}
+            {{end}}{{with .Values.config.Proxy.HTTP}}
+            - -node-http-proxy={{.}}
+            {{end}}
+            {{with .Values.config.Proxy.NoProxy}}
+            - -node-no-proxy={{.}}
+            {{end}}
+            {{if .Values.config.OperatingSystemManager.EnableNonRootDeviceOwnership}}
+            - -device-ownership-from-security-context
+            {{end}}
+          env:
+            - name: HTTPS_PROXY
+              value: "{{.Values.config.Proxy.HTTPS}}"
+            - name: NO_PROXY
+              value: "{{.Values.config.Proxy.NoProxy}}"
+{{.Values.operatingSystemManagerCredentialsEnvVars | indent 12}}
+          ports:
+            - containerPort: 8085
+          livenessProbe:
+            httpGet:
+              path: /readyz
+              port: 8085
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8085
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi

@@ -1,0 +1,9 @@
+# This manifest was dropped in favour of the upstream helm chart
+# see more at https://github.com/kubereboot/charts/tree/main/charts/kured
+#
+# Manual replacement in KubeOne API could be:
+# helmReleases:
+#   - chart: kured
+#     repoURL: https://kubereboot.github.io/charts
+#     namespace: kube-system
+#     version: 5.4.2

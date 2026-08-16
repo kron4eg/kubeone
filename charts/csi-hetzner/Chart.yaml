@@ -1,0 +1,4 @@
+apiVersion: v2
+name: csi-hetzner
+type: application
+version: 0.1.0

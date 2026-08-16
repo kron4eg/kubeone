@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: machine-controller
+  namespace: kube-system
+  labels:
+    app: machine-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: machine-controller
+  template:
+    metadata:
+      annotations:
+        "prometheus.io/scrape": "true"
+        "prometheus.io/port": "8080"
+        "prometheus.io/path": "/metrics"
+        "kubeone.k8c.io/cabundle-hash": "{{CABundle | sha256sum}}"
+        "kubeone.k8c.io/credentials-hash": "{{.Values.machineControllerCredentialsHash}}"
+      labels:
+        app: machine-controller
+    spec:
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: Exists
+          effect: NoSchedule
+        - key: "node-role.kubernetes.io/master"
+          operator: Exists
+          effect: NoSchedule
+        - key: "node.cloudprovider.kubernetes.io/uninitialized"
+          value: "true"
+          effect: NoSchedule
+        - key: "CriticalAddonsOnly"
+          operator: Exists
+      serviceAccountName: machine-controller
+      containers:
+        - name: machine-controller
+          image: "{{getImage "MachineController"}}"
+          imagePullPolicy: IfNotPresent
+          command:
+            - /usr/local/bin/machine-controller
+          args:
+            - -health-probe-address=0.0.0.0:8085
+            - -metrics-address=0.0.0.0:8080
+            - -node-csr-approver
+            {{if .Values.config.CloudProvider.External}}- -node-external-cloud-provider
+            {{end}}{{if CABundle}}- -ca-bundle={{.Values.resources.CABundleSSLCertFilePath}}
+            {{end}}- -join-cluster-timeout={{default "15m" .Values.params.JOIN_TIMEOUT}}
+          env:
+  {{with .Values.config.CloudProvider.Kubevirt}}{{with .InfraNamespace}}
+            - name: POD_NAMESPACE
+              value: "{{.}}"
+  {{end}}
+  {{end}}
+            - name: HTTPS_PROXY
+              value: "{{.Values.config.Proxy.HTTPS}}"
+            - name: NO_PROXY
+              value: "{{.Values.config.Proxy.NoProxy}}"
+{{.Values.machineControllerCredentialsEnvVars | indent 12}}
+          ports:
+            - containerPort: 8085
+            - containerPort: 8080
+              name: metrics
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /readyz
+              port: 8085
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8085
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi

@@ -171,25 +171,33 @@ func collectAddons(s *state.State) []addonAction {
 }
 
 func cleanupAddons(s *state.State) error {
-	if !*s.Cluster.Features.CoreDNS.DeployPodDisruptionBudget {
-		if err := DeleteAddonByName(s, resources.AddonCoreDNSPDB); err != nil {
-			return err
-		}
-	}
-
-	if s.Cluster.ClusterNetwork.CNI.Cilium == nil || !s.Cluster.ClusterNetwork.CNI.Cilium.EnableLocalRedirectPolicy {
-		if err := DeleteAddonByName(s, resources.AddonNodeLocalDNSCilium); err != nil {
-			return err
-		}
-	}
-
-	if s.Cluster.Features.NodeLocalDNS == nil || !s.Cluster.Features.NodeLocalDNS.Deploy {
-		if err := DeleteAddonByName(s, resources.AddonNodeLocalDNS); err != nil {
+	for _, addonName := range addonsToDelete(s) {
+		if err := DeleteAddonByName(s, addonName); err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+// addonsToDelete returns the names of embedded addons that must be removed
+// because their corresponding feature was disabled.
+func addonsToDelete(s *state.State) []string {
+	var names []string
+
+	if !*s.Cluster.Features.CoreDNS.DeployPodDisruptionBudget {
+		names = append(names, resources.AddonCoreDNSPDB)
+	}
+
+	if s.Cluster.ClusterNetwork.CNI.Cilium == nil || !s.Cluster.ClusterNetwork.CNI.Cilium.EnableLocalRedirectPolicy {
+		names = append(names, resources.AddonNodeLocalDNSCilium)
+	}
+
+	if s.Cluster.Features.NodeLocalDNS == nil || !s.Cluster.Features.NodeLocalDNS.Deploy {
+		names = append(names, resources.AddonNodeLocalDNS)
+	}
+
+	return names
 }
 
 func Ensure(s *state.State) error {

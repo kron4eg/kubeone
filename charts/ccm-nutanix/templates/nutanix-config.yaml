@@ -1,0 +1,60 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nutanix-config
+  namespace: kube-system
+data:
+  nutanix_config.json: |-
+    {
+      "prismCentral": {
+        "address": "{{.Values.credentials.NUTANIX_ENDPOINT}}",
+        "port": {{.Values.credentials.NUTANIX_PORT}},
+        "insecure": {{if .Values.credentials.NUTANIX_INSECURE}}true{{else}}false{{end}},
+        "credentialRef": {
+          "kind": "secret",
+          "name": "nutanix-creds",
+          "namespace": "kube-system"
+        },
+        "additionalTrustBundle": {
+          "kind": "ConfigMap",
+          "name": "nutanix-ca-bundle",
+          "namespace": "kube-system"
+        }
+      },
+      "enableCustomLabeling": false,
+      "topologyDiscovery": {
+        "type": "Prism"
+      }
+    }
+---
+# yes, we already have our own ca-bundle ConfigMap
+# but we need this CM to be present unconditionally, which is untrue for our CM
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nutanix-ca-bundle
+  namespace: kube-system
+data:
+  ca.crt: |-
+    {{CABundle | indent 4}}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nutanix-creds
+  namespace: kube-system
+stringData:
+  credentials: |-
+    [
+      {
+        "type": "basic_auth",
+        "data": {
+          "prismCentral": {
+            "username": "{{.Values.credentials.NUTANIX_USERNAME}}",
+            "password": "{{.Values.credentials.NUTANIX_PASSWORD}}"
+          },
+          "prismElements": null
+        }
+      }
+    ]

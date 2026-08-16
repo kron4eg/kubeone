@@ -15,6 +15,7 @@ KubeOne user documentation can be found at [KubeOne docs website](https://docs.k
 * [KubeOneCluster API (implemented)](./proposals/20190409-kubeonecluster-api.md)
 * [KubeOne Addons (implemented)](./proposals/20200205-addons.md)
 * [KubeOne Reconciliation process (implemented)](./proposals/20200224-apply.md)
+* [Addons as Helm charts (draft)](./proposals/20260815-addons-as-helm-charts.md)
 
 ### [API reference](./api_reference/)
 

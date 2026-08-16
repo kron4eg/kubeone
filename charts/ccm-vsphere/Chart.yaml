@@ -1,0 +1,4 @@
+apiVersion: v2
+name: ccm-vsphere
+type: application
+version: 0.1.0

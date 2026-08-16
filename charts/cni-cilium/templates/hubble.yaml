@@ -1,0 +1,627 @@
+{{if .Values.config.ClusterNetwork.CNI.Cilium.EnableHubble}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hubble-relay-config
+  namespace: kube-system
+data:
+  config.yaml: |
+    cluster-name: default
+    peer-service: "hubble-peer.kube-system.svc.cluster.local.:443"
+    listen-address: :4245
+    gops: true
+    gops-port: "9893"
+    retry-timeout:
+    sort-buffer-len-max:
+    sort-buffer-drain-timeout:
+    tls-hubble-client-cert-file: /var/lib/hubble-relay/tls/client.crt
+    tls-hubble-client-key-file: /var/lib/hubble-relay/tls/client.key
+    tls-hubble-server-ca-files: /var/lib/hubble-relay/tls/hubble-server-ca.crt
+    disable-server-tls: true
+
+{{$hubble_ipv6 := default "true" .Values.params.HubbleIPv6}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hubble-ui-nginx
+  namespace: kube-system
+data:
+  nginx.conf: |-
+    server {
+        listen       8081;
+        {{if eq $hubble_ipv6 "true"}}
+        listen       [::]:8081;
+        {{end}}
+        server_name  localhost;
+        root /app;
+        index index.html;
+        client_max_body_size 1G;
+
+        location / {
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+
+            # CORS
+            add_header Access-Control-Allow-Methods "GET, POST, PUT, HEAD, DELETE, OPTIONS";
+            add_header Access-Control-Allow-Origin *;
+            add_header Access-Control-Max-Age 1728000;
+            add_header Access-Control-Expose-Headers content-length,grpc-status,grpc-message;
+            add_header Access-Control-Allow-Headers range,keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web,grpc-timeout;
+            if ($request_method = OPTIONS) {
+                return 204;
+            }
+            # /CORS
+
+            location /api {
+                proxy_http_version 1.1;
+                proxy_pass_request_headers on;
+                proxy_hide_header Access-Control-Allow-Origin;
+                proxy_pass http://127.0.0.1:8090;
+            }
+            location / {
+                # double `/index.html` is required here
+                try_files $uri $uri/ /index.html /index.html;
+            }
+
+            # Liveness probe
+            location /healthz {
+                access_log off;
+                add_header Content-Type text/plain;
+                return 200 'ok';
+            }
+        }
+    }
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: hubble-generate-certs
+  namespace: kube-system
+---
+apiVersion: v1
+automountServiceAccountToken: false
+kind: ServiceAccount
+metadata:
+  name: hubble-relay
+  namespace: kube-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: hubble-ui
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/part-of: cilium
+  name: hubble-generate-certs
+  namespace: kube-system
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - create
+  - apiGroups:
+      - ""
+    resourceNames:
+      - hubble-server-certs
+      - hubble-relay-client-certs
+      - hubble-relay-server-certs
+      - hubble-metrics-server-certs
+      - hubble-ui-client-certs
+    resources:
+      - secrets
+    verbs:
+      - update
+  - apiGroups:
+      - ""
+    resourceNames:
+      - cilium-ca
+    resources:
+      - secrets
+    verbs:
+      - get
+      - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/part-of: cilium
+  name: hubble-ui
+rules:
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - networkpolicies
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - componentstatuses
+      - endpoints
+      - namespaces
+      - nodes
+      - pods
+      - services
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - apiextensions.k8s.io
+    resources:
+      - customresourcedefinitions
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - cilium.io
+    resources:
+      - '*'
+    verbs:
+      - get
+      - list
+      - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/part-of: cilium
+  name: hubble-generate-certs
+  namespace: kube-system
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - create
+  - apiGroups:
+      - ""
+    resourceNames:
+      - hubble-server-certs
+      - hubble-relay-client-certs
+      - hubble-relay-server-certs
+      - hubble-metrics-server-certs
+      - hubble-ui-client-certs
+    resources:
+      - secrets
+    verbs:
+      - update
+  - apiGroups:
+      - ""
+    resourceNames:
+      - cilium-ca
+    resources:
+      - secrets
+    verbs:
+      - get
+      - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/part-of: cilium
+  name: hubble-ui
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: hubble-ui
+subjects:
+  - kind: ServiceAccount
+    name: hubble-ui
+    namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/part-of: cilium
+  name: hubble-generate-certs
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: hubble-generate-certs
+subjects:
+  - kind: ServiceAccount
+    name: hubble-generate-certs
+    namespace: kube-system
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: hubble-relay
+    app.kubernetes.io/part-of: cilium
+    k8s-app: hubble-relay
+  name: hubble-relay
+  namespace: kube-system
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: grpc
+  selector:
+    k8s-app: hubble-relay
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: hubble-ui
+    app.kubernetes.io/part-of: cilium
+    k8s-app: hubble-ui
+  name: hubble-ui
+  namespace: kube-system
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8081
+  selector:
+    k8s-app: hubble-ui
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: hubble-peer
+    app.kubernetes.io/part-of: cilium
+    k8s-app: cilium
+  name: hubble-peer
+  namespace: kube-system
+spec:
+  internalTrafficPolicy: Local
+  ports:
+    - name: peer-service
+      port: 443
+      protocol: TCP
+      targetPort: 4244
+  selector:
+    k8s-app: cilium
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: hubble-relay
+    app.kubernetes.io/part-of: cilium
+    k8s-app: hubble-relay
+  name: hubble-relay
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: hubble-relay
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations: null
+      labels:
+        app.kubernetes.io/name: hubble-relay
+        app.kubernetes.io/part-of: cilium
+        k8s-app: hubble-relay
+    spec:
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  k8s-app: cilium
+              topologyKey: kubernetes.io/hostname
+      automountServiceAccountToken: false
+      containers:
+        - args:
+            - serve
+          command:
+            - hubble-relay
+          image: '{{getImage "HubbleRelay"}}'
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 12
+            grpc:
+              port: 4222
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 10
+          name: hubble-relay
+          ports:
+            - containerPort: 4245
+              name: grpc
+          readinessProbe:
+            grpc:
+              port: 4222
+            timeoutSeconds: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsGroup: 65532
+            runAsNonRoot: true
+            runAsUser: 65532
+            seccompProfile:
+              type: RuntimeDefault
+          startupProbe:
+            failureThreshold: 20
+            grpc:
+              port: 4222
+            initialDelaySeconds: 10
+            periodSeconds: 3
+          terminationMessagePolicy: FallbackToLogsOnError
+          volumeMounts:
+            - mountPath: /etc/hubble-relay
+              name: config
+              readOnly: true
+            - mountPath: /var/lib/hubble-relay/tls
+              name: tls
+              readOnly: true
+      nodeSelector:
+        kubernetes.io/os: linux
+      priorityClassName: null
+      restartPolicy: Always
+      securityContext:
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: hubble-relay
+      terminationGracePeriodSeconds: 1
+      volumes:
+        - configMap:
+            items:
+              - key: config.yaml
+                path: config.yaml
+            name: hubble-relay-config
+          name: config
+        - name: tls
+          projected:
+            defaultMode: 256
+            sources:
+              - secret:
+                  items:
+                    - key: tls.crt
+                      path: client.crt
+                    - key: tls.key
+                      path: client.key
+                    - key: ca.crt
+                      path: hubble-server-ca.crt
+                  name: hubble-relay-client-certs
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: hubble-ui
+    app.kubernetes.io/part-of: cilium
+    k8s-app: hubble-ui
+  name: hubble-ui
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: hubble-ui
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations: null
+      labels:
+        app.kubernetes.io/name: hubble-ui
+        app.kubernetes.io/part-of: cilium
+        k8s-app: hubble-ui
+    spec:
+      automountServiceAccountToken: true
+      containers:
+        - image: '{{getImage "HubbleUI"}}'
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          name: frontend
+          ports:
+            - containerPort: 8081
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          securityContext:
+            allowPrivilegeEscalation: false
+          terminationMessagePolicy: FallbackToLogsOnError
+          volumeMounts:
+            - mountPath: /etc/nginx/conf.d/default.conf
+              name: hubble-ui-nginx-conf
+              subPath: nginx.conf
+            - mountPath: /tmp
+              name: tmp-dir
+        - env:
+            - name: EVENTS_SERVER_PORT
+              value: "8090"
+            - name: FLOWS_API_ADDR
+              value: hubble-relay:80
+          image: '{{getImage "HubbleUIBackend"}}'
+          imagePullPolicy: IfNotPresent
+          name: backend
+          ports:
+            - containerPort: 8090
+              name: grpc
+          securityContext:
+            allowPrivilegeEscalation: false
+          terminationMessagePolicy: FallbackToLogsOnError
+          volumeMounts: null
+      nodeSelector:
+        kubernetes.io/os: linux
+      priorityClassName: null
+      securityContext:
+        fsGroup: 1001
+        runAsGroup: 1001
+        runAsUser: 1001
+      serviceAccountName: hubble-ui
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: hubble-ui-nginx
+          name: hubble-ui-nginx-conf
+        - emptyDir: {}
+          name: tmp-dir
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  labels:
+    app.kubernetes.io/name: hubble-generate-certs
+    app.kubernetes.io/part-of: cilium
+    k8s-app: hubble-generate-certs
+  name: hubble-generate-certs
+  namespace: kube-system
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            k8s-app: hubble-generate-certs
+        spec:
+          automountServiceAccountToken: true
+          containers:
+            - args:
+                - --ca-generate=true
+                - --ca-reuse-secret
+                - --ca-secret-namespace=kube-system
+                - --ca-secret-name=cilium-ca
+                - --ca-common-name=Cilium CA
+              command:
+                - /usr/bin/cilium-certgen
+              env:
+                - name: CILIUM_CERTGEN_CONFIG
+                  value: |
+                    certs:
+                    - name: hubble-server-certs
+                      namespace: kube-system
+                      commonName: "*.default.hubble-grpc.cilium.io"
+                      hosts:
+                      - "*.default.hubble-grpc.cilium.io"
+                      usage:
+                      - signing
+                      - key encipherment
+                      - server auth
+                      - client auth
+                      validity: 8760h
+                    - name: hubble-relay-client-certs
+                      namespace: kube-system
+                      commonName: "*.hubble-relay.cilium.io"
+                      hosts:
+                      - "*.hubble-relay.cilium.io"
+                      usage:
+                      - signing
+                      - key encipherment
+                      - client auth
+                      validity: 8760h
+              image: '{{getImage "CiliumCertGen"}}'
+              imagePullPolicy: IfNotPresent
+              name: certgen
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+          hostNetwork: false
+          restartPolicy: OnFailure
+          securityContext:
+            seccompProfile:
+              type: RuntimeDefault
+          serviceAccountName: hubble-generate-certs
+  schedule: 0 0 1 */4 *
+  successfulJobsHistoryLimit: 3
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app.kubernetes.io/name: hubble-generate-certs
+    app.kubernetes.io/part-of: cilium
+    k8s-app: hubble-generate-certs
+  name: hubble-generate-certs
+  namespace: kube-system
+spec:
+  template:
+    metadata:
+      labels:
+        k8s-app: hubble-generate-certs
+    spec:
+      automountServiceAccountToken: true
+      containers:
+        - args:
+            - --ca-generate=true
+            - --ca-reuse-secret
+            - --ca-secret-namespace=kube-system
+            - --ca-secret-name=cilium-ca
+            - --ca-common-name=Cilium CA
+          command:
+            - /usr/bin/cilium-certgen
+          env:
+            - name: CILIUM_CERTGEN_CONFIG
+              value: |
+                certs:
+                - name: hubble-server-certs
+                  namespace: kube-system
+                  commonName: "*.default.hubble-grpc.cilium.io"
+                  hosts:
+                  - "*.default.hubble-grpc.cilium.io"
+                  usage:
+                  - signing
+                  - key encipherment
+                  - server auth
+                  - client auth
+                  validity: 8760h
+                - name: hubble-relay-client-certs
+                  namespace: kube-system
+                  commonName: "*.hubble-relay.cilium.io"
+                  hosts:
+                  - "*.hubble-relay.cilium.io"
+                  usage:
+                  - signing
+                  - key encipherment
+                  - client auth
+                  validity: 8760h
+          image: '{{getImage "CiliumCertGen"}}'
+          imagePullPolicy: IfNotPresent
+          name: certgen
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+      hostNetwork: false
+      restartPolicy: OnFailure
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: hubble-generate-certs
+{{end}}

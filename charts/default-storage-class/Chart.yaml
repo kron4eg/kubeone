@@ -1,0 +1,4 @@
+apiVersion: v2
+name: default-storage-class
+type: application
+version: 0.1.0

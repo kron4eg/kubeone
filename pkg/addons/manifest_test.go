@@ -26,6 +26,7 @@ import (
 	"testing"
 	"text/template"
 
+	"k8c.io/kubeone/pkg/addons/helmchart"
 	kubeoneapi "k8c.io/kubeone/pkg/apis/kubeone"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -330,7 +331,7 @@ func TestCABundleFuncs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt, func(t *testing.T) {
-			tpl, err := template.New("addons-base").Funcs(txtFuncMap("")).Parse(fmt.Sprintf(`{{ %s }}`, tt))
+			tpl, err := template.New("addons-base").Funcs(helmchart.TxtFuncMap("")).Parse(fmt.Sprintf(`{{ %s }}`, tt))
 			if err != nil {
 				t.Errorf("failed to parse template: %v", err)
 				t.FailNow()
