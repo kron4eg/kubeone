@@ -25,7 +25,7 @@ control-plane host IPs yourself (e.g. via Terraform's `kubeone_hosts` and `kubeo
 ## Configuration
 
 ```yaml
-apiVersion: kubeone.k8c.io/v1beta3
+apiVersion: kubeone.k8c.io/v1beta2
 kind: KubeOneCluster
 name: my-cluster
 
@@ -45,9 +45,10 @@ cloudProvider:
         # Whether the load balancer should be internal (no public IP). Default: false
         internal: false
 
-        # Optional security groups to attach to the load balancer
+        # security groups to attach to the load balancer
         securityGroupIDs:
-          - sg-0123456789abcdef0
+          - sg-0123456789abcdef0 # open port 6443
+          - sg-061c2ae9af18bf42c # common with nodes
 
         # Optional tags applied to the load balancer and target group
         tags:
@@ -65,14 +66,19 @@ controlPlane:
           - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA...
         username: ubuntu
       cloudProviderSpec:
-        region: eu-central-1
-        availabilityZone: eu-central-1a
-        vpcId: vpc-0123456789abcdef0
-        subnetId: subnet-0123456789abcdef0
+        region: eu-west-1
+        vpcId: vpc-05c39c9a3138e3f8f
+        subnetId: subnet-0be46782596b4a0e3
+        securityGroupIDs:
+          - sg-061c2ae9af18bf42c # common
+          - sg-0841224b2e84d2005 # ssh
+        availabilityZone: eu-west-1a
         instanceType: t3.medium
-        ami: ami-0123456789abcdef0
+        instanceProfile: k1-host
+        assignPublicIP: true
         diskSize: 50
         diskType: gp3
+
 ```
 
 ## Load Balancer Configuration
