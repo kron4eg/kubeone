@@ -1,0 +1,42 @@
+{
+  "features": {
+    "ghcr.io/devcontainer-community/devcontainer-features/yq:1": {
+      "version": "1.0.3",
+      "resolved": "ghcr.io/devcontainer-community/devcontainer-features/yq@sha256:9e73b838a7d821f89c8020b51c2605aa4174811d152c70b43f2e98a0f8413d35",
+      "integrity": "sha256:9e73b838a7d821f89c8020b51c2605aa4174811d152c70b43f2e98a0f8413d35"
+    },
+    "ghcr.io/devcontainers-extra/features/gofumpt:1": {
+      "version": "1.0.0",
+      "resolved": "ghcr.io/devcontainers-extra/features/gofumpt@sha256:a3b7b433ea59cc2254baee9eb65e4ffe21ea923bc1f91462a84a21e4b1ae465e",
+      "integrity": "sha256:a3b7b433ea59cc2254baee9eb65e4ffe21ea923bc1f91462a84a21e4b1ae465e"
+    },
+    "ghcr.io/devcontainers-extra/features/golangci-lint:1": {
+      "version": "1.0.0",
+      "resolved": "ghcr.io/devcontainers-extra/features/golangci-lint@sha256:62540e8227666ba94a78f4ffc125d6c81d082dd1f202490dd3bae1084a3b7a5b",
+      "integrity": "sha256:62540e8227666ba94a78f4ffc125d6c81d082dd1f202490dd3bae1084a3b7a5b"
+    },
+    "ghcr.io/devcontainers-extra/features/shfmt:1": {
+      "version": "1.0.2",
+      "resolved": "ghcr.io/devcontainers-extra/features/shfmt@sha256:9d87bdd69e7b37554488291e79b37a40d1e18beddfa151454570d5bf72423df8",
+      "integrity": "sha256:9d87bdd69e7b37554488291e79b37a40d1e18beddfa151454570d5bf72423df8"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "version": "1.1.1",
+      "resolved": "ghcr.io/devcontainers/features/github-cli@sha256:94879eebb6a0e4e2f197de9f12db7427cb4a25b82d93c55239ce8c8fc394a1b4",
+      "integrity": "sha256:94879eebb6a0e4e2f197de9f12db7427cb4a25b82d93c55239ce8c8fc394a1b4"
+    },
+    "ghcr.io/devcontainers/features/terraform:1": {
+      "version": "1.5.0",
+      "resolved": "ghcr.io/devcontainers/features/terraform@sha256:bc9eaf21aaba050bace59f411c282cb58058535a48232c059e60c19f86caa8f5",
+      "integrity": "sha256:bc9eaf21aaba050bace59f411c282cb58058535a48232c059e60c19f86caa8f5",
+      "dependsOn": [
+        "ghcr.io/devcontainers/features/github-cli:1"
+      ]
+    },
+    "ghcr.io/dhoeric/features/terraform-docs:1": {
+      "version": "1.0.0",
+      "resolved": "ghcr.io/dhoeric/features/terraform-docs@sha256:eb0c7b50809a020fa74ba924999caaf1bd2b43783ec1589775447dbca557623b",
+      "integrity": "sha256:eb0c7b50809a020fa74ba924999caaf1bd2b43783ec1589775447dbca557623b"
+    }
+  }
+}

@@ -1,0 +1,56 @@
+// Copyright 2026 The KubeOne Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+{
+  "name": "KubeOne",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "remoteUser": "vscode",
+  "containerEnv": {
+    "CGO_ENABLED": "0",
+    "GOPROXY": "https://proxy.golang.org"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "EditorConfig.EditorConfig",
+        "GitHub.vscode-pull-request-github",
+        "golang.Go",
+        "HashiCorp.terraform",
+        "redhat.vscode-yaml",
+        "usernamehw.errorlens"
+      ],
+      "settings": {
+        "go.toolsManagement.autoUpdate": true,
+        "gopls": {
+          "local": "k8c.io",
+          "directoryFilters": ["-hack"]
+        }
+      }
+    }
+  },
+  "features": {
+    "ghcr.io/devcontainer-community/devcontainer-features/yq:1": {},
+    "ghcr.io/devcontainers-extra/features/gofumpt:1": {},
+    "ghcr.io/devcontainers-extra/features/golangci-lint:1": {},
+    "ghcr.io/devcontainers-extra/features/shfmt:1": {},
+    "ghcr.io/devcontainers/features/terraform:1": {},
+    "ghcr.io/dhoeric/features/terraform-docs:1": {}
+  },
+  "forwardPorts": [
+    8080,
+    8888
+  ]
+}
