@@ -370,8 +370,9 @@ func createAWSLoadBalancer(ctx context.Context, client *elasticloadbalancingv2.C
 
 func awsLabels(clusterName string) map[string]string {
 	return map[string]string{
-		"kubeone_cluster_name": clusterName,
-		"kubeone_role":         "control-plane",
+		"kubeone_cluster_name":                 clusterName,
+		"kubeone_role":                         "control-plane",
+		"kubernetes.io/cluster/" + clusterName: "shared",
 	}
 }
 
