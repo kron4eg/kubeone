@@ -79,6 +79,12 @@ func (p *Provider) GenerateMachines(clusterName string, nodeSet []kubeoneapi.Nod
 }
 
 func (p *Provider) EnsureVM(s *state.State, capimachine clusterv1alpha1.Machine) error {
+	awsConfig, err := awsRawConfigFromCAPI(capimachine.Spec.ProviderSpec)
+	if err != nil {
+		return err
+	}
+	availabilityZone := awsConfig.AvailabilityZone.Value
+
 	provMachines, err := provisioner.FindOrCreateMachines(s.Context, []clusterv1alpha1.Machine{capimachine}, s.Logger)
 	if err != nil {
 		return err
@@ -105,8 +111,9 @@ func (p *Provider) EnsureVM(s *state.State, capimachine clusterv1alpha1.Machine)
 			TargetGroupArn: aws.String(tgArn),
 			Targets: []elbv2types.TargetDescription{
 				{
-					Id:   aws.String(m.PrivateAddress),
-					Port: aws.Int32(awsAPIServerPort),
+					Id:               aws.String(m.PrivateAddress),
+					Port:             aws.Int32(awsAPIServerPort),
+					AvailabilityZone: aws.String(availabilityZone),
 				},
 			},
 		})
@@ -395,13 +402,30 @@ func awsTargetGroupName(lbName string) string {
 	return name
 }
 
-func awsRawConfigFromNodeSet(node kubeoneapi.NodeSet) (*awstypes.RawConfig, error) {
+func awsRawConfigFromRaw(cloudProviderSpec json.RawMessage) (*awstypes.RawConfig, error) {
 	var cfg awstypes.RawConfig
-	if err := jsonutil.StrictUnmarshal(node.CloudProviderSpec, &cfg); err != nil {
+	if err := jsonutil.StrictUnmarshal(cloudProviderSpec, &cfg); err != nil {
 		return nil, fail.Config(err, "decode aws config")
 	}
 
 	return &cfg, nil
+}
+
+func awsRawConfigFromCAPI(spec clusterv1alpha1.ProviderSpec) (*awstypes.RawConfig, error) {
+	if spec.Value == nil || len(spec.Value.Raw) == 0 {
+		return nil, fail.Config(errors.New("providerSpec.value is empty"), "decode provider spec")
+	}
+
+	var cfg providerconfig.Config
+	if err := jsonutil.StrictUnmarshal(spec.Value.Raw, &cfg); err != nil {
+		return nil, fail.Config(err, "decode provider spec")
+	}
+
+	if len(cfg.CloudProviderSpec.Raw) == 0 {
+		return nil, fail.Config(errors.New("cloudProviderSpec is empty"), "decode aws config")
+	}
+
+	return awsRawConfigFromRaw(cfg.CloudProviderSpec.Raw)
 }
 
 // awsNetworkFromNodeSets collects the VPC (must be identical across nodeSets) and the unique subnet IDs
@@ -414,7 +438,7 @@ func awsNetworkFromNodeSets(nodeSets []kubeoneapi.NodeSet) (string, []string, er
 	var subnetIDs []string
 
 	for _, node := range nodeSets {
-		cfg, err := awsRawConfigFromNodeSet(node)
+		cfg, err := awsRawConfigFromRaw(node.CloudProviderSpec)
 		if err != nil {
 			return "", nil, err
 		}
@@ -464,7 +488,7 @@ func generateAWSControlPlaneMachines(clusterName string, nodeSet []kubeoneapi.No
 				return nil, err
 			}
 
-			awsConfig, err := awsRawConfigFromNodeSet(node)
+			awsConfig, err := awsRawConfigFromRaw(node.CloudProviderSpec)
 			if err != nil {
 				return nil, err
 			}
